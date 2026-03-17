@@ -1,12 +1,12 @@
 import SwiftUI
 
 /// View displaying all top songs for an artist.
-@available(macOS 26.0, *)
+
 struct TopSongsView: View {
-    @State var viewModel: TopSongsViewModel
-    @Environment(PlayerService.self) private var playerService
-    @Environment(FavoritesManager.self) private var favoritesManager
-    @Environment(SongLikeStatusManager.self) private var likeStatusManager
+    @ObservedObject var viewModel: TopSongsViewModel
+    @EnvironmentObject private var playerService: PlayerService
+    @EnvironmentObject private var favoritesManager: FavoritesManager
+    @EnvironmentObject private var likeStatusManager: SongLikeStatusManager
 
     var body: some View {
         Group {
@@ -37,12 +37,6 @@ struct TopSongsView: View {
             }
         }
         .navigationTitle("Top songs")
-        .toolbarBackgroundVisibility(.hidden, for: .automatic)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            if case .error = self.viewModel.loadingState {} else {
-                PlayerBar()
-            }
-        }
         .task {
             if self.viewModel.loadingState == .idle {
                 await self.viewModel.load()
@@ -195,6 +189,8 @@ struct TopSongsView: View {
     }
 }
 
+#if false
+#if false
 #Preview {
     let songs = (1 ... 10).map { i in
         Song(
@@ -216,7 +212,10 @@ struct TopSongsView: View {
     )
     let authService = AuthService()
     let client = YTMusicClient(authService: authService, webKitManager: .shared)
-    TopSongsView(viewModel: TopSongsViewModel(destination: destination, client: client))
-        .environment(PlayerService())
-        .environment(FavoritesManager.shared)
+    return TopSongsView(viewModel: TopSongsViewModel(destination: destination, client: client))
+        .environmentObject(PlayerService())
+        .environmentObject(FavoritesManager.shared)
+        .environmentObject(SongLikeStatusManager.shared)
 }
+#endif
+#endif

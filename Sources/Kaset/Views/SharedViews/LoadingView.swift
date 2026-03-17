@@ -96,7 +96,7 @@ struct LoadingView: View {
 // MARK: - HomeLoadingView
 
 /// A specialized loading view for the home screen with skeleton sections.
-@available(macOS 26.0, *)
+
 struct HomeLoadingView: View {
     var body: some View {
         ScrollView {
@@ -112,6 +112,8 @@ struct HomeLoadingView: View {
     }
 }
 
+#if false
+#if false
 #Preview {
     VStack {
         LoadingView("Loading your music...")
@@ -120,3 +122,5 @@ struct HomeLoadingView: View {
     }
     .frame(width: 600, height: 800)
 }
+#endif
+#endif

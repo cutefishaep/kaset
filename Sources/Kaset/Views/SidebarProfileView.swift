@@ -11,10 +11,10 @@ import SwiftUI
 ///
 /// Shows the current user's account info with an option to switch accounts
 /// if brand accounts are available.
-@available(macOS 26.0, *)
+
 struct SidebarProfileView: View {
-    @Environment(AccountService.self) private var accountService
-    @Environment(AuthService.self) private var authService
+    @EnvironmentObject private var accountService: AccountService
+    @EnvironmentObject private var authService: AuthService
 
     @State private var showingAccountSwitcher = false
 
@@ -80,7 +80,7 @@ struct SidebarProfileView: View {
             )
             .popover(isPresented: self.$showingAccountSwitcher, arrowEdge: .top) {
                 AccountSwitcherPopover()
-                    .environment(self.accountService)
+                    .environmentObject(self.accountService)
             }
         } else if self.accountService.lastError != nil, !self.accountService.isLoading {
             // Error state - show retry option
@@ -222,28 +222,32 @@ extension AccessibilityID {
 
 // MARK: - Preview
 
-@available(macOS 26.0, *)
+
+#if false
 #Preview("With Account") {
     let authService = AuthService()
     let ytMusicClient = YTMusicClient(authService: authService)
     let accountService = AccountService(ytMusicClient: ytMusicClient, authService: authService)
 
-    SidebarProfileView()
-        .environment(accountService)
-        .environment(authService)
+    return SidebarProfileView()
+        .environmentObject(accountService)
+        .environmentObject(authService)
         .frame(width: 220)
         .padding()
 }
+#endif
 
-@available(macOS 26.0, *)
+
+#if false
 #Preview("Logged Out") {
     let authService = AuthService()
     let ytMusicClient = YTMusicClient(authService: authService)
     let accountService = AccountService(ytMusicClient: ytMusicClient, authService: authService)
 
-    SidebarProfileView()
-        .environment(accountService)
-        .environment(authService)
+    return SidebarProfileView()
+        .environmentObject(accountService)
+        .environmentObject(authService)
         .frame(width: 220)
         .padding()
 }
+#endif

@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - HomeSectionItemCard
 
 /// Reusable card view for home section items (songs, playlists, albums, artists).
-@available(macOS 26.0, *)
+
 struct HomeSectionItemCard: View {
     let item: HomeSectionItem
     let rank: Int?
@@ -181,6 +181,8 @@ struct HomeSectionItemCard: View {
     }
 }
 
+#if false
+#if false
 #Preview {
     let song = Song(
         id: "test",
@@ -188,7 +190,7 @@ struct HomeSectionItemCard: View {
         artists: [Artist(id: "artist1", name: "Test Artist")],
         videoId: "testVideo"
     )
-    HStack {
+    return HStack {
         HomeSectionItemCard(item: .song(song)) {
             // No-op for preview
         }
@@ -198,3 +200,5 @@ struct HomeSectionItemCard: View {
     }
     .padding()
 }
+#endif
+#endif

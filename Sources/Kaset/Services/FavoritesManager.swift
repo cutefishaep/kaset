@@ -1,17 +1,17 @@
+import Combine
+import CoreTransferable
 import Foundation
-import Observation
 
 // MARK: - FavoritesManager
 
 /// Manages Favorites persistence and state.
 @MainActor
-@Observable
-final class FavoritesManager {
+final class FavoritesManager: ObservableObject {
     /// Shared singleton instance.
     static let shared = FavoritesManager()
 
     /// Current pinned items (ordered).
-    private(set) var items: [FavoriteItem] = []
+    @Published private(set) var items: [FavoriteItem] = []
 
     /// Whether Favorites section should be visible.
     var isVisible: Bool {
@@ -258,5 +258,13 @@ final class FavoritesManager {
     func reset(with items: [FavoriteItem]) {
         self.items = items
         self.save()
+    }
+}
+
+// MARK: - FavoriteItem + Transferable
+
+extension FavoriteItem: Transferable {
+    static var transferRepresentation: some TransferRepresentation {
+        CodableRepresentation(for: FavoriteItem.self, contentType: .data)
     }
 }

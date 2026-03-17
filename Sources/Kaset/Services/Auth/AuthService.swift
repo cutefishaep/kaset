@@ -1,13 +1,12 @@
+import Combine
 import Foundation
-import Observation
 import os
 
 /// Manages authentication state for YouTube Music.
 @MainActor
-@Observable
-final class AuthService: AuthServiceProtocol {
+final class AuthService: ObservableObject, AuthServiceProtocol {
     /// Authentication states.
-    enum State: Equatable {
+    enum State: Equatable, Sendable {
         case initializing
         case loggedOut
         case loggingIn
@@ -24,10 +23,10 @@ final class AuthService: AuthServiceProtocol {
     }
 
     /// Current authentication state.
-    private(set) var state: State
+    @Published private(set) var state: State
 
     /// Flag indicating whether re-authentication is needed.
-    var needsReauth: Bool = false
+    @Published var needsReauth: Bool = false
 
     private let webKitManager: WebKitManagerProtocol
     private let logger = DiagnosticsLogger.auth

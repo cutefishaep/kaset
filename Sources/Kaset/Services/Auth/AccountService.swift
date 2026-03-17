@@ -1,8 +1,4 @@
-// AccountService.swift
-// Kaset
-//
-// Manages account state and brand account switching.
-
+import Combine
 import Foundation
 import os
 
@@ -24,9 +20,8 @@ import os
 ///     try await accountService.switchAccount(to: brandAccount)
 /// }
 /// ```
-@Observable
 @MainActor
-final class AccountService {
+final class AccountService: ObservableObject {
     // MARK: - Dependencies
 
     private let ytMusicClient: any YTMusicClientProtocol
@@ -35,22 +30,22 @@ final class AccountService {
     // MARK: - Published State
 
     /// All available accounts (primary + brand accounts).
-    private(set) var accounts: [UserAccount] = []
+    @Published private(set) var accounts: [UserAccount] = []
 
     /// Currently selected/active account.
-    private(set) var currentAccount: UserAccount?
+    @Published private(set) var currentAccount: UserAccount?
 
     /// Whether an account operation is in progress.
-    private(set) var isLoading: Bool = false
+    @Published private(set) var isLoading: Bool = false
 
     /// Last error encountered, for toast display.
-    private(set) var lastError: Error?
+    @Published private(set) var lastError: Error?
 
     /// Whether the last error was from fetching accounts (vs switching).
-    private(set) var lastErrorWasFetch: Bool = false
+    @Published private(set) var lastErrorWasFetch: Bool = false
 
     /// Incremented each time an error occurs, to trigger toast re-display.
-    private(set) var errorSequence: Int = 0
+    @Published private(set) var errorSequence: Int = 0
 
     // MARK: - Computed Properties
 

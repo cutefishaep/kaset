@@ -30,7 +30,7 @@ struct CachedAsyncImage<Content: View, Placeholder: View>: View {
                 self.placeholder()
             }
         }
-        .onChange(of: self.url) { _, _ in
+        .onChange(of: self.url) { _ in
             // Reset state when URL changes for proper UX
             self.image = nil
             self.isLoaded = false

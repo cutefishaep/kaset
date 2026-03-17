@@ -4,7 +4,7 @@ import SwiftUI
 // MARK: - VideoWindowController
 
 /// Manages the floating video window.
-@available(macOS 26.0, *)
+
 @MainActor
 final class VideoWindowController {
     static let shared = VideoWindowController()
@@ -50,8 +50,8 @@ final class VideoWindowController {
         }
 
         let contentView = VideoPlayerWindow()
-            .environment(playerService)
-            .environment(webKitManager)
+            .environmentObject(playerService)
+            .environmentObject(webKitManager)
 
         let hostingView = NSHostingView(rootView: AnyView(contentView))
         self.hostingView = hostingView
@@ -69,8 +69,8 @@ final class VideoWindowController {
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.isMovableByWindowBackground = true
-        // Normal window level (not always-on-top) for better UX
-        window.level = .normal
+        // Floating window level so it stays visible above the main app window
+        window.level = .floating
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window.aspectRatio = NSSize(width: 16, height: 9)
         window.minSize = NSSize(width: 320, height: 180)

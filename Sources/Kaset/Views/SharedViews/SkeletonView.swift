@@ -196,6 +196,8 @@ struct SkeletonSectionView: View {
 
 // MARK: - Preview
 
+#if false
+#if false
 #Preview {
     VStack(spacing: 32) {
         // Individual skeletons
@@ -223,3 +225,5 @@ struct SkeletonSectionView: View {
     .padding()
     .frame(width: 600)
 }
+#endif
+#endif

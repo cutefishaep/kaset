@@ -3,12 +3,11 @@ import SwiftUI
 // MARK: - MainWindow
 
 /// Main application window with sidebar navigation and player bar.
-@available(macOS 26.0, *)
 struct MainWindow: View {
-    @Environment(AuthService.self) private var authService
-    @Environment(PlayerService.self) private var playerService
-    @Environment(WebKitManager.self) private var webKitManager
-    @Environment(AccountService.self) private var accountService
+    @EnvironmentObject private var authService: AuthService
+    @EnvironmentObject private var playerService: PlayerService
+    @EnvironmentObject private var webKitManager: WebKitManager
+    @EnvironmentObject private var accountService: AccountService
     @Environment(\.showCommandBar) private var showCommandBar
 
     /// Binding to navigation selection for keyboard shortcut control from parent.
@@ -55,7 +54,6 @@ struct MainWindow: View {
     }
 
     var body: some View {
-        @Bindable var player = self.playerService
 
         ZStack(alignment: .bottomTrailing) {
             Group {
@@ -129,27 +127,27 @@ struct MainWindow: View {
             AccountErrorToast()
                 .padding(.top, 60)
         }
-        .onChange(of: self.showCommandBar.wrappedValue) { _, newValue in
+        .onChange(of: self.showCommandBar.wrappedValue) { newValue in
             if newValue {
                 self.showCommandBarSheet = true
                 self.showCommandBar.wrappedValue = false
             }
         }
-        .onChange(of: self.authService.state) { oldState, newState in
-            self.handleAuthStateChange(oldState: oldState, newState: newState)
+        .onChange(of: self.authService.state) { newState in
+            self.handleAuthStateChange(oldState: self.authService.state, newState: newState)
         }
-        .onChange(of: self.authService.needsReauth) { _, needsReauth in
+        .onChange(of: self.authService.needsReauth) { needsReauth in
             if needsReauth {
                 self.showLoginSheet = true
             }
         }
-        .onChange(of: self.playerService.isPlaying) { _, isPlaying in
+        .onChange(of: self.playerService.isPlaying) { isPlaying in
             // Auto-hide the WebView once playback starts
             if isPlaying, self.playerService.showMiniPlayer {
                 self.playerService.confirmPlaybackStarted()
             }
         }
-        .onChange(of: self.playerService.showVideo) { _, showVideo in
+        .onChange(of: self.playerService.showVideo) { showVideo in
             DiagnosticsLogger.player.debug("showVideo onChange triggered: \(showVideo)")
             if showVideo {
                 VideoWindowController.shared.show(
@@ -160,7 +158,7 @@ struct MainWindow: View {
                 VideoWindowController.shared.close()
             }
         }
-        .onChange(of: self.accountService.currentAccount?.id) { _, newAccountId in
+        .onChange(of: self.accountService.currentAccount?.id) { newAccountId in
             // Refresh all content when user switches accounts
             guard newAccountId != nil else { return }
             DiagnosticsLogger.auth.info("Account switched, refreshing content...")
@@ -184,7 +182,21 @@ struct MainWindow: View {
             NavigationSplitView(columnVisibility: self.$columnVisibility) {
                 Sidebar(selection: self.$navigationSelection)
             } detail: {
-                self.detailView(for: self.navigationSelection, client: self.client)
+                ZStack(alignment: .bottom) {
+                    self.detailView(for: self.navigationSelection, client: self.client)
+                        .safeAreaInset(edge: .bottom, spacing: 0) {
+                            Color.clear.frame(height: 76) // Space for PlayerBar
+                        }
+
+                    if self.playerService.showLyrics {
+                        LyricsView(client: self.client)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                            .zIndex(1)
+                    }
+
+                    PlayerBar()
+                        .zIndex(2)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
@@ -194,7 +206,7 @@ struct MainWindow: View {
                 }
             }
 
-            // Right sidebar overlay - either lyrics or queue (mutually exclusive)
+            // Right sidebar overlay - ONLY queue now
             self.rightSidebarOverlay(client: self.client)
         }
         .animation(.easeInOut(duration: 0.25), value: self.playerService.showLyrics)
@@ -207,7 +219,7 @@ struct MainWindow: View {
                 } label: {
                     Image(systemName: "sparkles")
                         .font(.system(size: 14))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(.white)
                 }
                 .keyboardShortcut("k", modifiers: .command)
                 .help("Ask AI (⌘K)")
@@ -217,34 +229,25 @@ struct MainWindow: View {
         }
     }
 
-    /// Right sidebar overlay showing either lyrics or queue as glass panels (mutually exclusive).
+    /// Right sidebar overlay showing queue as a glass panel.
     @ViewBuilder
     private func rightSidebarOverlay(client: any YTMusicClientProtocol) -> some View {
-        let showRightSidebar = self.playerService.showLyrics || self.playerService.showQueue
-
-        if showRightSidebar {
-            VStack {
-                Spacer()
-
+        if self.playerService.showQueue {
+            VStack(spacing: 0) {
                 Group {
-                    if self.playerService.showLyrics {
-                        LyricsView(client: client)
-                    } else if self.playerService.showQueue {
-                        if self.playerService.queueDisplayMode == .sidepanel {
-                            QueueSidePanelView()
-                        } else {
-                            QueueView()
-                        }
+                    if self.playerService.queueDisplayMode == .sidepanel {
+                        QueueSidePanelView()
+                    } else {
+                        QueueView()
                     }
                 }
                 .frame(maxHeight: .infinity)
-                .padding(.top, 12)
-                .padding(.bottom, 76) // Space for PlayerBar
                 .transition(.move(edge: .trailing).combined(with: .opacity))
 
-                Spacer()
+                // Space for PlayerBar so the queue doesn't underlap
+                Color.clear.frame(height: 76)
             }
-            .padding(.trailing, 16)
+            .frame(maxWidth: 400) // Constrain width to prevent covering the left navigation sidebar
         }
     }
 
@@ -284,7 +287,7 @@ struct MainWindow: View {
                 if let vm = libraryViewModel { LibraryView(viewModel: vm) }
             }
         }
-        .environment(self.libraryViewModel)
+        .environmentObject(self.libraryViewModel!)
     }
 
     /// View shown while checking initial login status.
@@ -392,15 +395,18 @@ enum NavigationItem: String, Hashable, CaseIterable, Identifiable {
     }
 }
 
-@available(macOS 26.0, *)
+
+#if false
+#if false
 #Preview {
-    @Previewable @State var navSelection: NavigationItem? = .home
     let authService = AuthService()
     let ytMusicClient = YTMusicClient(authService: authService)
     let accountService = AccountService(ytMusicClient: ytMusicClient, authService: authService)
-    MainWindow(navigationSelection: $navSelection, client: ytMusicClient)
-        .environment(authService)
-        .environment(PlayerService())
-        .environment(WebKitManager.shared)
-        .environment(accountService)
+    return MainWindow(navigationSelection: .constant(.home), client: ytMusicClient)
+        .environmentObject(authService)
+        .environmentObject(PlayerService())
+        .environmentObject(WebKitManager.shared)
+        .environmentObject(accountService)
 }
+#endif
+#endif

@@ -25,7 +25,7 @@ import SwiftUI
 ///     }
 /// }
 /// ```
-@available(macOS 26.0, *)
+
 struct ToastView: View {
     // MARK: - Properties
 
@@ -76,7 +76,6 @@ struct ToastView: View {
                 .fill(.regularMaterial)
                 .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
         }
-        .glassEffectTransition(.materialize)
         .accessibilityIdentifier(AccessibilityID.Toast.container)
     }
 }
@@ -86,9 +85,9 @@ struct ToastView: View {
 /// A toast that observes AccountService errors and auto-dismisses.
 ///
 /// Add this to MainWindow as an overlay to show account switching errors.
-@available(macOS 26.0, *)
+
 struct AccountErrorToast: View {
-    @Environment(AccountService.self) private var accountService
+    @EnvironmentObject private var accountService: AccountService
 
     @State private var isVisible = false
     @State private var dismissTask: Task<Void, Never>?
@@ -108,7 +107,7 @@ struct AccountErrorToast: View {
             }
         }
         .animation(.spring(duration: 0.3), value: self.isVisible)
-        .onChange(of: self.accountService.errorSequence) { _, _ in
+        .onChange(of: self.accountService.errorSequence) { _ in
             if self.accountService.lastError != nil {
                 self.show()
             }
@@ -163,16 +162,20 @@ extension AccessibilityID {
 
 // MARK: - Preview
 
-@available(macOS 26.0, *)
+
+#if false
 #Preview("Error Toast") {
     ToastView(message: "Failed to switch account. Please try again.", isError: true) {
         DiagnosticsLogger.ui.debug("Toast dismissed")
     }
     .padding()
 }
+#endif
 
-@available(macOS 26.0, *)
+
+#if false
 #Preview("Info Toast") {
     ToastView(message: "Account switched successfully", isError: false)
         .padding()
 }
+#endif

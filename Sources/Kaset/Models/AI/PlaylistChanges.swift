@@ -1,11 +1,14 @@
+#if canImport(FoundationModels)
 import Foundation
+#if canImport(FoundationModels)
 import FoundationModels
+#endif
 
 /// Represents AI-suggested changes to a playlist.
 /// Generated when the user asks to "refine" or "clean up" a playlist.
-@available(macOS 26.0, *)
+
 @Generable
-struct PlaylistChanges {
+struct PlaylistChanges: Sendable {
     /// Video IDs of tracks to remove from the playlist.
     @Guide(description: "List of video IDs (not titles) to remove from the playlist. Empty if no removals.")
     let removals: [String]
@@ -19,3 +22,11 @@ struct PlaylistChanges {
     @Guide(description: "A brief, friendly explanation of the suggested changes (1-2 sentences).")
     let reasoning: String
 }
+
+extension PlaylistChanges {
+    struct PartiallyGenerated: Sendable {
+        let removals: [String]
+        let reasoning: String
+    }
+}
+#endif

@@ -1,25 +1,64 @@
+import Combine
 import Foundation
-import Observation
 import os
 
 // MARK: - PlayerService
 
 /// Controls music playback via a hidden WKWebView.
+/// Global backing for shared instance to support non-isolated access from AppleScript on macOS 13.
+private var _sharedPlayerService: PlayerService?
+
+/// Snapshot of PlayerService state for non-isolated synchronous access (e.g., AppleScript).
+struct PlayerServiceSnapshot: Sendable {
+    var state: PlayerService.PlaybackState = .idle
+    var isPlaying: Bool = false
+    var currentTrack: Song? = nil
+    var progress: TimeInterval = 0
+    var duration: TimeInterval = 0
+    var volume: Double = 1.0
+    var isMuted: Bool = false
+    var shuffleEnabled: Bool = false
+    var repeatMode: PlayerService.RepeatMode = .off
+    var currentTrackLikeStatus: LikeStatus = .indifferent
+}
+
+private var _playerServiceSnapshot = PlayerServiceSnapshot()
+
 @MainActor
-@Observable
-final class PlayerService: NSObject, PlayerServiceProtocol {
+final class PlayerService: NSObject, ObservableObject, PlayerServiceProtocol {
     /// Shared instance for AppleScript access.
     ///
     /// **Safety Invariant:** This property is set exactly once during app initialization
     /// in `KasetApp.init()` before any AppleScript commands can be received, and is never
-    /// modified afterward. The property is `@MainActor`-isolated along with the entire class,
-    /// ensuring thread-safe access from AppleScript commands (which run on the main thread).
-    ///
-    /// AppleScript commands should handle the `nil` case gracefully by returning an error
-    /// to the caller, as there's a brief window during app launch before initialization completes.
-    static var shared: PlayerService?
+    /// Access from AppleScript commands (which run on the main thread)
+    /// is safe even via the non-isolated backing.
+    nonisolated static var shared: PlayerService? {
+        get { _sharedPlayerService }
+        set { _sharedPlayerService = newValue }
+    }
+
+    /// Returns a non-isolated snapshot of the current player state.
+    nonisolated static var snapshot: PlayerServiceSnapshot {
+        _playerServiceSnapshot
+    }
+
+    /// Updates the global snapshot with current values.
+    private func updateSnapshot() {
+        _playerServiceSnapshot = PlayerServiceSnapshot(
+            state: self.state,
+            isPlaying: self.isPlaying,
+            currentTrack: self.currentTrack,
+            progress: self.progress,
+            duration: self.duration,
+            volume: self.volume,
+            isMuted: self.isMuted,
+            shuffleEnabled: self.shuffleEnabled,
+            repeatMode: self.repeatMode,
+            currentTrackLikeStatus: self.currentTrackLikeStatus
+        )
+    }
     /// Current playback state.
-    enum PlaybackState: Equatable {
+    enum PlaybackState: Equatable, Sendable {
         case idle
         case loading
         case playing
@@ -34,7 +73,7 @@ final class PlayerService: NSObject, PlayerServiceProtocol {
     }
 
     /// Repeat mode for playback.
-    enum RepeatMode {
+    enum RepeatMode: Sendable {
         case off
         case all
         case one
@@ -43,10 +82,14 @@ final class PlayerService: NSObject, PlayerServiceProtocol {
     // MARK: - Observable State
 
     /// Current playback state.
-    private(set) var state: PlaybackState = .idle
+    @Published private(set) var state: PlaybackState = .idle {
+        didSet { self.updateSnapshot() }
+    }
 
     /// Currently playing track.
-    var currentTrack: Song?
+    @Published var currentTrack: Song? {
+        didSet { self.updateSnapshot() }
+    }
 
     /// Whether playback is active.
     var isPlaying: Bool {
@@ -54,13 +97,19 @@ final class PlayerService: NSObject, PlayerServiceProtocol {
     }
 
     /// Current playback position in seconds.
-    private(set) var progress: TimeInterval = 0
+    @Published private(set) var progress: TimeInterval = 0 {
+        didSet { self.updateSnapshot() }
+    }
 
     /// Total duration of current track in seconds.
-    private(set) var duration: TimeInterval = 0
+    @Published private(set) var duration: TimeInterval = 0 {
+        didSet { self.updateSnapshot() }
+    }
 
     /// Current volume (0.0 - 1.0).
-    private(set) var volume: Double = 1.0
+    @Published private(set) var volume: Double = 1.0 {
+        didSet { self.updateSnapshot() }
+    }
 
     /// Volume before muting, for unmute restoration.
     private var volumeBeforeMute: Double = 1.0
@@ -71,38 +120,44 @@ final class PlayerService: NSObject, PlayerServiceProtocol {
     }
 
     /// Whether shuffle mode is enabled.
-    private(set) var shuffleEnabled: Bool = false
+    @Published private(set) var shuffleEnabled: Bool = false {
+        didSet { self.updateSnapshot() }
+    }
 
     /// Current repeat mode.
-    private(set) var repeatMode: RepeatMode = .off
+    @Published private(set) var repeatMode: RepeatMode = .off {
+        didSet { self.updateSnapshot() }
+    }
 
     /// Playback queue.
-    var queue: [Song] = []
+    @Published var queue: [Song] = []
 
     /// Index of current track in queue.
-    var currentIndex: Int = 0
+    @Published var currentIndex: Int = 0
 
     /// Whether the mini player should be shown (user needs to interact to start playback).
-    var showMiniPlayer: Bool = false
+    @Published var showMiniPlayer: Bool = false
 
     /// The video ID that needs to be played in the mini player.
-    private(set) var pendingPlayVideoId: String?
+    @Published private(set) var pendingPlayVideoId: String?
 
     /// Whether the user has successfully interacted at least once this session.
     /// After first successful playback, we can auto-play without showing the popup.
-    private(set) var hasUserInteractedThisSession: Bool = false
+    @Published private(set) var hasUserInteractedThisSession: Bool = false
 
     /// Like status of the current track.
-    var currentTrackLikeStatus: LikeStatus = .indifferent
+    @Published var currentTrackLikeStatus: LikeStatus = .indifferent {
+        didSet { self.updateSnapshot() }
+    }
 
     /// Whether the current track is in the user's library.
-    var currentTrackInLibrary: Bool = false
+    @Published var currentTrackInLibrary: Bool = false
 
     /// Feedback tokens for the current track (used for library add/remove).
-    var currentTrackFeedbackTokens: FeedbackTokens?
+    @Published var currentTrackFeedbackTokens: FeedbackTokens?
 
     /// Whether the lyrics panel is visible.
-    var showLyrics: Bool = false {
+    @Published var showLyrics: Bool = false {
         didSet {
             // Mutual exclusivity: opening lyrics closes queue
             if self.showLyrics, self.showQueue {
@@ -112,10 +167,10 @@ final class PlayerService: NSObject, PlayerServiceProtocol {
     }
 
     /// Display mode for the queue panel (popup vs side panel).
-    var queueDisplayMode: QueueDisplayMode = .popup
+    @Published var queueDisplayMode: QueueDisplayMode = .popup
 
     /// Whether the queue panel is visible.
-    var showQueue: Bool = false {
+    @Published var showQueue: Bool = false {
         didSet {
             // Mutual exclusivity: opening queue closes lyrics
             if self.showQueue, self.showLyrics {
@@ -125,18 +180,18 @@ final class PlayerService: NSObject, PlayerServiceProtocol {
     }
 
     /// Whether the current track has video available.
-    private(set) var currentTrackHasVideo: Bool = false
+    @Published private(set) var currentTrackHasVideo: Bool = false
 
     /// Whether video mode is active (user has opened video window).
     /// Note: We don't auto-close based on currentTrackHasVideo here because
     /// the detection can be unreliable when video mode CSS is active.
-    var showVideo: Bool = false
+    @Published var showVideo: Bool = false
 
     /// Whether AirPlay is currently connected (playing to a wireless target).
-    private(set) var isAirPlayConnected: Bool = false
+    @Published private(set) var isAirPlayConnected: Bool = false
 
     /// Whether the user has requested AirPlay this session (for persistence across track changes).
-    private(set) var airPlayWasRequested: Bool = false
+    @Published private(set) var airPlayWasRequested: Bool = false
 
     // MARK: - Internal Properties (for extensions)
 

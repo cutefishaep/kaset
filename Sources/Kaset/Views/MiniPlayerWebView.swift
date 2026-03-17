@@ -8,8 +8,8 @@ import WebKit
 /// without user interaction - autoplay is blocked in hidden WebViews.
 /// Uses SingletonPlayerWebView for the actual WebView instance.
 struct MiniPlayerWebView: NSViewRepresentable {
-    @Environment(WebKitManager.self) private var webKitManager
-    @Environment(PlayerService.self) private var playerService
+    @EnvironmentObject private var webKitManager: WebKitManager
+    @EnvironmentObject private var playerService: PlayerService
 
     /// The video ID to play.
     let videoId: String
@@ -156,6 +156,7 @@ struct MiniPlayerWebView: NSViewRepresentable {
 
     // MARK: - Coordinator
 
+    @MainActor
     class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         var onStateChange: ((PlayerState) -> Void)?
         var onMetadataChange: ((String, String, Double) -> Void)?
@@ -168,22 +169,27 @@ struct MiniPlayerWebView: NSViewRepresentable {
             self.onMetadataChange = onMetadataChange
         }
 
-        func webView(_: WKWebView, didFinish _: WKNavigation!) {
+        nonisolated func webView(_: WKWebView, didFinish _: WKNavigation!) {
             // Page loaded
         }
 
-        func webView(_: WKWebView, didFail _: WKNavigation!, withError error: Error) {
-            self.onStateChange?(.error(error.localizedDescription))
+        nonisolated func webView(_: WKWebView, didFail _: WKNavigation!, withError error: Error) {
+            let message = error.localizedDescription
+            Task { @MainActor in
+                self.onStateChange?(.error(message))
+            }
         }
 
-        func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        nonisolated func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
             // WebView content process crashed - attempt recovery by reloading
             DiagnosticsLogger.player.error("MiniPlayer WebView content process terminated, attempting reload")
-            self.onStateChange?(.error("Player crashed, reloading..."))
-            webView.reload()
+            Task { @MainActor in
+                self.onStateChange?(.error("Player crashed, reloading..."))
+                webView.reload()
+            }
         }
 
-        func userContentController(
+        nonisolated func userContentController(
             _: WKUserContentController,
             didReceive message: WKScriptMessage
         ) {
@@ -197,11 +203,13 @@ struct MiniPlayerWebView: NSViewRepresentable {
                 let duration = body["duration"] as? Double ?? 0
                 let isPlaying = body["isPlaying"] as? Bool ?? false
 
-                if !title.isEmpty {
-                    self.onMetadataChange?(title, artist, duration)
-                }
+                Task { @MainActor in
+                    if !title.isEmpty {
+                        self.onMetadataChange?(title, artist, duration)
+                    }
 
-                self.onStateChange?(isPlaying ? .playing : .paused)
+                    self.onStateChange?(isPlaying ? .playing : .paused)
+                }
             }
         }
     }
@@ -260,6 +268,11 @@ final class SingletonPlayerWebView {
         // 1. Set __kasetTargetVolume in loadVideo() before loading a new page
         // 2. Update it in didFinish after each page load completes
         // This ensures we always use the CURRENT volume, not a stale value.
+
+        // Inject ad blocker scripts (runs at document start, before YouTube scripts)
+        for script in AdBlockerService.makeScripts() {
+            configuration.userContentController.addUserScript(script)
+        }
 
         // Inject observer script (at document end)
         let script = WKUserScript(
@@ -333,14 +346,15 @@ final class SingletonPlayerWebView {
 
     // MARK: - Coordinator
 
-    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
+        @MainActor
+        final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         let playerService: PlayerService
 
         init(playerService: PlayerService) {
             self.playerService = playerService
         }
 
-        func userContentController(_: WKUserContentController, didReceive message: WKScriptMessage) {
+        nonisolated func userContentController(_: WKUserContentController, didReceive message: WKScriptMessage) {
             guard let body = message.body as? [String: Any],
                   let type = body["type"] as? String
             else { return }
@@ -417,68 +431,70 @@ final class SingletonPlayerWebView {
             }
         }
 
-        func webView(_ webView: WKWebView, didFinish _: WKNavigation!) {
-            DiagnosticsLogger.player.info(
-                "Singleton WebView finished loading: \(webView.url?.absoluteString ?? "nil")"
-            )
+        nonisolated func webView(_ webView: WKWebView, didFinish _: WKNavigation!) {
+            Task { @MainActor in
+                DiagnosticsLogger.player.info(
+                    "Singleton WebView finished loading: \(webView.url?.absoluteString ?? "nil")"
+                )
 
-            // Apply the current volume when page finishes loading
-            // This is critical because YouTube may set its own default volume
-            let savedVolume = self.playerService.volume
-            let applyVolumeScript = """
-                (function() {
-                    // Set target volume for enforcement
-                    window.__kasetTargetVolume = \(savedVolume);
-                    // Set flag to prevent enforcement from reverting our change
-                    window.__kasetIsSettingVolume = true;
+                // Apply the current volume when page finishes loading
+                // This is critical because YouTube may set its own default volume
+                let savedVolume = self.playerService.volume
+                let applyVolumeScript = """
+                    (function() {
+                        // Set target volume for enforcement
+                        window.__kasetTargetVolume = \(savedVolume);
+                        // Set flag to prevent enforcement from reverting our change
+                        window.__kasetIsSettingVolume = true;
 
-                    // Apply to video element if it exists
-                    const video = document.querySelector('video');
-                    if (video) {
-                        video.volume = \(savedVolume);
+                        // Apply to video element if it exists
+                        const video = document.querySelector('video');
+                        if (video) {
+                            video.volume = \(savedVolume);
+                        }
+
+                        // Sync YouTube's internal player APIs to prevent overrides
+                        const ytVolume = Math.round(\(savedVolume) * 100);
+                        const player = document.querySelector('ytmusic-player');
+                        if (player && player.playerApi) {
+                            player.playerApi.setVolume(ytVolume);
+                        }
+                        const moviePlayer = document.getElementById('movie_player');
+                        if (moviePlayer && moviePlayer.setVolume) {
+                            moviePlayer.setVolume(ytVolume);
+                        }
+
+                        // Clear flag after a moment
+                        setTimeout(() => { window.__kasetIsSettingVolume = false; }, 100);
+
+                        return video ? 'applied' : 'no-video-yet';
+                    })();
+                """
+                Task { @MainActor in
+                    webView.evaluateJavaScript(applyVolumeScript) { result, error in
+                        if let error = error {
+                            DiagnosticsLogger.player.error("Failed to apply volume via script: \(error.localizedDescription)")
+                        } else if let resultString = result as? String {
+                            DiagnosticsLogger.player.debug("Volume apply result: \(resultString)")
+                        }
                     }
-
-                    // Sync YouTube's internal player APIs to prevent overrides
-                    const ytVolume = Math.round(\(savedVolume) * 100);
-                    const player = document.querySelector('ytmusic-player');
-                    if (player && player.playerApi) {
-                        player.playerApi.setVolume(ytVolume);
-                    }
-                    const moviePlayer = document.getElementById('movie_player');
-                    if (moviePlayer && moviePlayer.setVolume) {
-                        moviePlayer.setVolume(ytVolume);
-                    }
-
-                    // Clear flag after a moment
-                    setTimeout(() => { window.__kasetIsSettingVolume = false; }, 100);
-
-                    return video ? 'applied' : 'no-video-yet';
-                })();
-            """
-            webView.evaluateJavaScript(applyVolumeScript) { result, error in
-                if let error {
-                    DiagnosticsLogger.player.error(
-                        "Failed to apply saved volume \(savedVolume): \(error.localizedDescription)"
-                    )
-                } else if let resultString = result as? String {
-                    DiagnosticsLogger.player.debug("Volume apply result: \(resultString)")
                 }
             }
         }
 
-        func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        nonisolated func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
             // WebView content process crashed - attempt recovery
             DiagnosticsLogger.player.error("Singleton WebView content process terminated, attempting recovery")
 
-            // Get the current video ID before reloading
-            let currentVideoId = SingletonPlayerWebView.shared.currentVideoId
+            Task { @MainActor in
+                // Get the current video ID before reloading
+                let currentVideoId = SingletonPlayerWebView.shared.currentVideoId
 
-            // Reload the WebView
-            webView.reload()
+                // Reload the WebView
+                webView.reload()
 
-            // If we had a video playing, reload it after a brief delay
-            if let videoId = currentVideoId {
-                Task { @MainActor in
+                // If we had a video playing, reload it after a brief delay
+                if let videoId = currentVideoId {
                     try? await Task.sleep(for: .seconds(1))
                     // Reset currentVideoId to force reload
                     SingletonPlayerWebView.shared.currentVideoId = nil

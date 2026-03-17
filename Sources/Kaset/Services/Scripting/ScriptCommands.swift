@@ -15,8 +15,8 @@ private let logger = DiagnosticsLogger.scripting
 
 // MARK: - Helper
 
-/// Checks if PlayerService.shared is available. Must be called from main thread.
-@MainActor
+/// Checks if PlayerService.shared is available. 
+/// Using Snapshot for reading state properties on macOS 13 (synchronous AppleScript calls).
 private func getPlayerService() -> PlayerService? {
     PlayerService.shared
 }
@@ -28,7 +28,7 @@ private func getPlayerService() -> PlayerService? {
 final class PlayCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
         // AppleScript commands run on the main thread
-        guard let playerService = MainActor.assumeIsolated({ getPlayerService() }) else {
+        guard let playerService = getPlayerService() else {
             logger.error("Play command failed: PlayerService.shared is nil")
             scriptErrorNumber = errPlayerNotAvailable
             scriptErrorString = playerNotAvailableMessage
@@ -48,7 +48,7 @@ final class PlayCommand: NSScriptCommand {
 @objc(KasetPauseCommand)
 final class PauseCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
-        guard let playerService = MainActor.assumeIsolated({ getPlayerService() }) else {
+        guard let playerService = getPlayerService() else {
             logger.error("Pause command failed: PlayerService.shared is nil")
             scriptErrorNumber = errPlayerNotAvailable
             scriptErrorString = playerNotAvailableMessage
@@ -68,7 +68,7 @@ final class PauseCommand: NSScriptCommand {
 @objc(KasetPlayPauseCommand)
 final class PlayPauseCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
-        guard let playerService = MainActor.assumeIsolated({ getPlayerService() }) else {
+        guard let playerService = getPlayerService() else {
             logger.error("PlayPause command failed: PlayerService.shared is nil")
             scriptErrorNumber = errPlayerNotAvailable
             scriptErrorString = playerNotAvailableMessage
@@ -88,7 +88,7 @@ final class PlayPauseCommand: NSScriptCommand {
 @objc(KasetNextTrackCommand)
 final class NextTrackCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
-        guard let playerService = MainActor.assumeIsolated({ getPlayerService() }) else {
+        guard let playerService = getPlayerService() else {
             logger.error("NextTrack command failed: PlayerService.shared is nil")
             scriptErrorNumber = errPlayerNotAvailable
             scriptErrorString = playerNotAvailableMessage
@@ -108,7 +108,7 @@ final class NextTrackCommand: NSScriptCommand {
 @objc(KasetPreviousTrackCommand)
 final class PreviousTrackCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
-        guard let playerService = MainActor.assumeIsolated({ getPlayerService() }) else {
+        guard let playerService = getPlayerService() else {
             logger.error("PreviousTrack command failed: PlayerService.shared is nil")
             scriptErrorNumber = errPlayerNotAvailable
             scriptErrorString = playerNotAvailableMessage
@@ -137,7 +137,7 @@ final class SetVolumeCommand: NSScriptCommand {
 
         let normalizedVolume = Double(max(0, min(100, volumeValue))) / 100.0
 
-        guard let playerService = MainActor.assumeIsolated({ getPlayerService() }) else {
+        guard let playerService = getPlayerService() else {
             logger.error("SetVolume command failed: PlayerService.shared is nil")
             scriptErrorNumber = errPlayerNotAvailable
             scriptErrorString = playerNotAvailableMessage
@@ -158,14 +158,14 @@ final class SetVolumeCommand: NSScriptCommand {
 @objc(KasetToggleShuffleCommand)
 final class ToggleShuffleCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
-        guard let playerService = MainActor.assumeIsolated({ getPlayerService() }) else {
+        guard let playerService = getPlayerService() else {
             logger.error("ToggleShuffle command failed: PlayerService.shared is nil")
             scriptErrorNumber = errPlayerNotAvailable
             scriptErrorString = playerNotAvailableMessage
             return nil
         }
         logger.info("Executing toggleShuffle command")
-        MainActor.assumeIsolated {
+        Task { @MainActor in
             playerService.toggleShuffle()
         }
         return nil
@@ -179,14 +179,14 @@ final class ToggleShuffleCommand: NSScriptCommand {
 @objc(KasetCycleRepeatCommand)
 final class CycleRepeatCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
-        guard let playerService = MainActor.assumeIsolated({ getPlayerService() }) else {
+        guard let playerService = getPlayerService() else {
             logger.error("CycleRepeat command failed: PlayerService.shared is nil")
             scriptErrorNumber = errPlayerNotAvailable
             scriptErrorString = playerNotAvailableMessage
             return nil
         }
         logger.info("Executing cycleRepeat command")
-        MainActor.assumeIsolated {
+        Task { @MainActor in
             playerService.cycleRepeatMode()
         }
         return nil
@@ -199,7 +199,7 @@ final class CycleRepeatCommand: NSScriptCommand {
 @objc(KasetToggleMuteCommand)
 final class ToggleMuteCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
-        guard let playerService = MainActor.assumeIsolated({ getPlayerService() }) else {
+        guard let playerService = getPlayerService() else {
             logger.error("ToggleMute command failed: PlayerService.shared is nil")
             scriptErrorNumber = errPlayerNotAvailable
             scriptErrorString = playerNotAvailableMessage
@@ -220,68 +220,63 @@ final class ToggleMuteCommand: NSScriptCommand {
 @objc(KasetGetPlayerInfoCommand)
 final class GetPlayerInfoCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
-        // AppleScript runs on main thread, so we can assume MainActor isolation
-        let result = MainActor.assumeIsolated { () -> String in
-            guard let playerService = getPlayerService() else {
-                logger.error("GetPlayerInfo command failed: PlayerService.shared is nil")
-                return "{\"error\": \"Player not available\"}"
-            }
-
-            logger.info("Executing getPlayerInfo command")
-
-            let track = playerService.currentTrack
-            let repeatMode = switch playerService.repeatMode {
-            case .off: "off"
-            case .all: "all"
-            case .one: "one"
-            }
-
-            let likeStatus = switch playerService.currentTrackLikeStatus {
-            case .like: "liked"
-            case .dislike: "disliked"
-            case .indifferent: "none"
-            }
-
-            var info: [String: Any] = [
-                "isPlaying": playerService.isPlaying,
-                "isPaused": playerService.state == .paused,
-                "position": playerService.progress,
-                "duration": playerService.duration,
-                "volume": Int(playerService.volume * 100),
-                "shuffling": playerService.shuffleEnabled,
-                "repeating": repeatMode,
-                "muted": playerService.isMuted,
-                "likeStatus": likeStatus,
-            ]
-
-            if let track {
-                info["currentTrack"] = [
-                    "name": track.title,
-                    "artist": track.artistsDisplay,
-                    "album": track.album?.title ?? "",
-                    "duration": track.duration ?? 0,
-                    "videoId": track.videoId,
-                    "artworkURL": track.thumbnailURL?.absoluteString ?? "",
-                ]
-            }
-
-            if let data = try? JSONSerialization.data(withJSONObject: info, options: [.sortedKeys]),
-               let json = String(data: data, encoding: .utf8)
-            {
-                return json
-            }
-
-            logger.error("GetPlayerInfo command failed: JSON serialization error")
-            return "{}"
-        }
-
-        // Set error if player wasn't available (check by looking at result)
-        if result.contains("\"error\"") {
+        // AppleScript runs on main thread. We use the non-isolated snapshot to access player state safely.
+        let snapshot = PlayerService.snapshot
+        
+        // Check if player initialized (check by looking at snapshot state or share instance)
+        if getPlayerService() == nil {
+            logger.error("GetPlayerInfo command failed: PlayerService.shared is nil")
             scriptErrorNumber = errPlayerNotAvailable
             scriptErrorString = playerNotAvailableMessage
+            return "{\"error\": \"Player not available\"}"
         }
 
-        return result
+        logger.info("Executing getPlayerInfo command")
+
+        let track = snapshot.currentTrack
+        let repeatMode = switch snapshot.repeatMode {
+        case .off: "off"
+        case .all: "all"
+        case .one: "one"
+        }
+
+        let likeStatus = switch snapshot.currentTrackLikeStatus {
+        case .like: "liked"
+        case .dislike: "disliked"
+        case .indifferent: "none"
+        }
+
+        var info: [String: Any] = [
+            "isPlaying": snapshot.isPlaying,
+            "isPaused": snapshot.state == .paused,
+            "position": snapshot.progress,
+            "duration": snapshot.duration,
+            "volume": Int(snapshot.volume * 100),
+            "shuffling": snapshot.shuffleEnabled,
+            "repeating": repeatMode,
+            "muted": snapshot.isMuted,
+            "likeStatus": likeStatus,
+        ]
+
+        if let track {
+            info["currentTrack"] = [
+                "name": track.title,
+                "artist": track.artistsDisplay,
+                "album": track.album?.title ?? "",
+                "duration": track.duration ?? 0,
+                "videoId": track.videoId,
+                "artworkURL": track.thumbnailURL?.absoluteString ?? "",
+            ]
+        }
+
+        if let data = try? JSONSerialization.data(withJSONObject: info, options: [.sortedKeys]),
+           let json = String(data: data, encoding: .utf8)
+        {
+            return json
+        }
+
+        logger.error("GetPlayerInfo command failed: JSON serialization error")
+        return "{}"
     }
 }
 
@@ -292,14 +287,14 @@ final class GetPlayerInfoCommand: NSScriptCommand {
 @objc(KasetLikeTrackCommand)
 final class LikeTrackCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
-        guard let playerService = MainActor.assumeIsolated({ getPlayerService() }) else {
+        guard let playerService = getPlayerService() else {
             logger.error("LikeTrack command failed: PlayerService.shared is nil")
             scriptErrorNumber = errPlayerNotAvailable
             scriptErrorString = playerNotAvailableMessage
             return nil
         }
         logger.info("Executing likeTrack command")
-        MainActor.assumeIsolated {
+        Task { @MainActor in
             playerService.likeCurrentTrack()
         }
         return nil
@@ -313,14 +308,14 @@ final class LikeTrackCommand: NSScriptCommand {
 @objc(KasetDislikeTrackCommand)
 final class DislikeTrackCommand: NSScriptCommand {
     override func performDefaultImplementation() -> Any? {
-        guard let playerService = MainActor.assumeIsolated({ getPlayerService() }) else {
+        guard let playerService = getPlayerService() else {
             logger.error("DislikeTrack command failed: PlayerService.shared is nil")
             scriptErrorNumber = errPlayerNotAvailable
             scriptErrorString = playerNotAvailableMessage
             return nil
         }
         logger.info("Executing dislikeTrack command")
-        MainActor.assumeIsolated {
+        Task { @MainActor in
             playerService.dislikeCurrentTrack()
         }
         return nil

@@ -1,16 +1,15 @@
+import Combine
 import Foundation
-import Observation
 import os
 
 /// View model for the TopSongsView.
 @MainActor
-@Observable
-final class TopSongsViewModel {
+final class TopSongsViewModel: ObservableObject {
     /// Current loading state.
-    private(set) var loadingState: LoadingState = .idle
+    @Published private(set) var loadingState: LoadingState = .idle
 
     /// All loaded songs.
-    private(set) var songs: [Song] = []
+    @Published private(set) var songs: [Song] = []
 
     private let destination: TopSongsDestination
     let client: any YTMusicClientProtocol

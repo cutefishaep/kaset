@@ -5,8 +5,8 @@ import SwiftUI
 /// A SwiftUI view that displays the singleton WebView.
 /// The WebView is created once and reused for all playback.
 struct PersistentPlayerView: NSViewRepresentable {
-    @Environment(WebKitManager.self) private var webKitManager
-    @Environment(PlayerService.self) private var playerService
+    @EnvironmentObject private var webKitManager: WebKitManager
+    @EnvironmentObject private var playerService: PlayerService
 
     let videoId: String
     let isExpanded: Bool
@@ -66,13 +66,12 @@ struct PersistentPlayerView: NSViewRepresentable {
 
 /// A small toast-style view that appears when mini player is shown.
 /// Uses Liquid Glass materialize transition for smooth appearance.
-@available(macOS 26.0, *)
+
 struct MiniPlayerToast: View {
     let videoId: String
 
     var body: some View {
         PersistentPlayerView(videoId: self.videoId, isExpanded: true)
             .clipShape(RoundedRectangle(cornerRadius: 6))
-            .glassEffectTransition(.materialize)
     }
 }

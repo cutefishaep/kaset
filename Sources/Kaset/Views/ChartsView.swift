@@ -1,10 +1,10 @@
 import SwiftUI
 
 /// Charts view displaying top songs, albums, and trending charts.
-@available(macOS 26.0, *)
+
 struct ChartsView: View {
-    @State var viewModel: ChartsViewModel
-    @Environment(PlayerService.self) private var playerService
+    @ObservedObject var viewModel: ChartsViewModel
+    @EnvironmentObject private var playerService: PlayerService
     @State private var navigationPath = NavigationPath()
     @State private var networkMonitor = NetworkMonitor.shared
 
@@ -34,9 +34,6 @@ struct ChartsView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationTitle("Charts")
             .navigationDestinations(client: self.viewModel.client)
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            PlayerBar()
         }
         .onAppear {
             if self.viewModel.loadingState == .idle {
@@ -116,9 +113,13 @@ struct ChartsView: View {
     }
 }
 
+#if false
+#if false
 #Preview {
     let authService = AuthService()
     let client = YTMusicClient(authService: authService, webKitManager: .shared)
-    ChartsView(viewModel: ChartsViewModel(client: client))
-        .environment(PlayerService())
+    return ChartsView(viewModel: ChartsViewModel(client: client))
+        .environmentObject(PlayerService())
 }
+#endif
+#endif

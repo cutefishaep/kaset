@@ -4,7 +4,6 @@ import SwiftUI
 
 /// Reusable error view with title, message, and optional retry action.
 /// Uses native `ContentUnavailableView` for platform-consistent styling.
-@available(macOS 14.0, *)
 struct ErrorView: View {
     let title: String
     let message: String
@@ -36,23 +35,41 @@ struct ErrorView: View {
     }
 
     var body: some View {
-        ContentUnavailableView {
-            Label(self.title, systemImage: "exclamationmark.triangle")
-        } description: {
+        VStack(spacing: 20) {
+            VStack(spacing: 8) {
+                Image(systemName: "exclamationmark.triangle")
+                    .font(.system(size: 48))
+                    .foregroundStyle(.secondary)
+                
+                Text(self.title)
+                    .font(.title2)
+                    .fontWeight(.bold)
+            }
+            
             Text(self.message)
-        } actions: {
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 32)
+            
             if self.isRetryable, let action = self.retryAction {
                 Button("Try Again") {
                     action()
                 }
                 .buttonStyle(.borderedProminent)
+                .controlSize(.large)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
+#if false
+#if false
 #Preview {
     ErrorView(message: "Something went wrong") {
         // No-op for preview
     }
 }
+#endif
+#endif

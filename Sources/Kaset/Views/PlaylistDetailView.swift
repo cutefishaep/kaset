@@ -1,17 +1,19 @@
+#if canImport(FoundationModels)
 import FoundationModels
+#endif
 import SwiftUI
 
 // MARK: - PlaylistDetailView
 
 /// Detail view for a playlist showing its tracks.
-@available(macOS 26.0, *)
+
 struct PlaylistDetailView: View {
     let playlist: Playlist
-    @State var viewModel: PlaylistDetailViewModel
-    @Environment(PlayerService.self) private var playerService
-    @Environment(FavoritesManager.self) private var favoritesManager
-    @Environment(SongLikeStatusManager.self) private var likeStatusManager
-    @Environment(LibraryViewModel.self) private var libraryViewModel: LibraryViewModel?
+    @ObservedObject var viewModel: PlaylistDetailViewModel
+    @EnvironmentObject private var playerService: PlayerService
+    @EnvironmentObject private var favoritesManager: FavoritesManager
+    @EnvironmentObject private var likeStatusManager: SongLikeStatusManager
+    @EnvironmentObject private var libraryViewModel: LibraryViewModel
 
     /// Tracks whether this playlist has been added to library in this session.
     @State private var isAddedToLibrary: Bool = false
@@ -19,11 +21,13 @@ struct PlaylistDetailView: View {
     /// Whether the refine playlist sheet is visible.
     @State private var showRefineSheet: Bool = false
 
+    #if canImport(FoundationModels)
     /// AI-generated playlist changes.
     @State private var playlistChanges: PlaylistChanges?
 
     /// Partial playlist changes during streaming.
     @State private var partialChanges: PlaylistChanges.PartiallyGenerated?
+    #endif
 
     /// Whether AI is processing the refine request.
     @State private var isRefining: Bool = false
@@ -31,16 +35,14 @@ struct PlaylistDetailView: View {
     /// Error message from refine operation.
     @State private var refineError: String?
 
-    /// Computed property to check if playlist is in library.
     private var isInLibrary: Bool {
-        self.libraryViewModel?.isInLibrary(playlistId: self.playlist.id) ?? false
+        self.libraryViewModel.isInLibrary(playlistId: self.playlist.id)
     }
-
     private let logger = DiagnosticsLogger.ai
 
     init(playlist: Playlist, viewModel: PlaylistDetailViewModel) {
         self.playlist = playlist
-        _viewModel = State(initialValue: viewModel)
+        self.viewModel = viewModel
     }
 
     var body: some View {
@@ -64,12 +66,6 @@ struct PlaylistDetailView: View {
         }
         .accentBackground(from: self.viewModel.playlistDetail?.thumbnailURL?.highQualityThumbnailURL)
         .navigationTitle(self.playlist.title)
-        .toolbarBackgroundVisibility(.hidden, for: .automatic)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            if case .error = self.viewModel.loadingState {} else {
-                PlayerBar()
-            }
-        }
         .task {
             if self.viewModel.loadingState == .idle {
                 await self.viewModel.load()
@@ -78,6 +74,7 @@ struct PlaylistDetailView: View {
         .refreshable {
             await self.viewModel.refresh()
         }
+        #if canImport(FoundationModels)
         .sheet(isPresented: self.$showRefineSheet) {
             if let detail = viewModel.playlistDetail {
                 RefinePlaylistSheet(
@@ -97,6 +94,7 @@ struct PlaylistDetailView: View {
                 )
             }
         }
+        #endif
     }
 
     // MARK: - Views
@@ -502,6 +500,7 @@ struct PlaylistDetailView: View {
         }
     }
 
+    #if canImport(FoundationModels)
     private func refinePlaylist(tracks: [Song], prompt: String) async {
         self.isRefining = true
         self.refineError = nil
@@ -576,11 +575,14 @@ struct PlaylistDetailView: View {
         self.partialChanges = nil
         self.isRefining = false
     }
+    #else
+    private func refinePlaylist(tracks: [Song], prompt: String) async {}
+    #endif
 }
 
+#if canImport(FoundationModels)
 // MARK: - RefinePlaylistSheet
 
-@available(macOS 26.0, *)
 private struct RefinePlaylistSheet: View {
     let tracks: [Song]
     @Binding var isProcessing: Bool
@@ -645,7 +647,7 @@ private struct RefinePlaylistSheet: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    /// Shows partial changes as they stream in from the AI.
+    /// Shows partial content as it streams in from the AI.
     private func streamingChangesView(_ partial: PlaylistChanges.PartiallyGenerated) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             // Reasoning (shows as it streams)
@@ -801,27 +803,20 @@ private struct RefinePlaylistSheet: View {
                 .padding(.horizontal)
             }
 
-            Divider()
+            Spacer()
 
-            // Actions
             HStack {
-                Button("Try Again") {
+                Button("Discard") {
                     self.changes = nil
-                    self.errorMessage = nil
                 }
+                .foregroundStyle(.red)
 
                 Spacer()
-
-                Button("Cancel") {
-                    self.dismiss()
-                }
-                .keyboardShortcut(.escape)
 
                 Button("Apply Changes") {
                     self.onApply()
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(changes.removals.isEmpty && changes.reorderedIds == nil)
             }
             .padding()
         }
@@ -838,10 +833,12 @@ private struct RefinePlaylistSheet: View {
                 .background(.quaternary)
                 .clipShape(Capsule())
         }
-        .buttonStyle(.plain)
     }
 }
+#endif
 
+#if false
+#if false
 #Preview {
     let playlist = Playlist(
         id: "test",
@@ -853,12 +850,18 @@ private struct RefinePlaylistSheet: View {
     )
     let authService = AuthService()
     let client = YTMusicClient(authService: authService, webKitManager: .shared)
-    PlaylistDetailView(
+    return PlaylistDetailView(
         playlist: playlist,
         viewModel: PlaylistDetailViewModel(
             playlist: playlist,
             client: client
         )
     )
-    .environment(PlayerService())
+    .environmentObject(PlayerService())
+    .environmentObject(FavoritesManager.shared)
+    .environmentObject(SongLikeStatusManager.shared)
+    .environmentObject(LibraryViewModel(client: client))
 }
+#endif
+#endif
+

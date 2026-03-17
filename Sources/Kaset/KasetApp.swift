@@ -1,37 +1,53 @@
 import AppKit
 import SwiftUI
 
-extension EnvironmentValues {
-    @Entry var searchFocusTrigger: Binding<Bool> = .constant(false)
+struct SearchFocusTriggerKey: EnvironmentKey {
+    static let defaultValue: Binding<Bool> = .constant(false)
+}
+
+struct NavigationSelectionKey: EnvironmentKey {
+    static let defaultValue: Binding<NavigationItem?> = .constant(nil)
+}
+
+struct ShowCommandBarKey: EnvironmentKey {
+    static let defaultValue: Binding<Bool> = .constant(false)
 }
 
 extension EnvironmentValues {
-    @Entry var navigationSelection: Binding<NavigationItem?> = .constant(nil)
-}
-
-extension EnvironmentValues {
-    @Entry var showCommandBar: Binding<Bool> = .constant(false)
+    var searchFocusTrigger: Binding<Bool> {
+        get { self[SearchFocusTriggerKey.self] }
+        set { self[SearchFocusTriggerKey.self] = newValue }
+    }
+    
+    var navigationSelection: Binding<NavigationItem?> {
+        get { self[NavigationSelectionKey.self] }
+        set { self[NavigationSelectionKey.self] = newValue }
+    }
+    
+    var showCommandBar: Binding<Bool> {
+        get { self[ShowCommandBarKey.self] }
+        set { self[ShowCommandBarKey.self] = newValue }
+    }
 }
 
 // MARK: - KasetApp
 
 /// Main entry point for the Kaset macOS application.
-@available(macOS 26.0, *)
 @main
 struct KasetApp: App {
     /// App delegate for lifecycle management (background playback).
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
-    @State private var authService = AuthService()
-    @State private var webKitManager = WebKitManager.shared
-    @State private var playerService = PlayerService()
+    @StateObject private var authService: AuthService
+    @StateObject private var webKitManager: WebKitManager
+    @StateObject private var playerService: PlayerService
     @State private var sharedClient: any YTMusicClientProtocol
     @State private var notificationService: NotificationService?
     @State private var updaterService = UpdaterService()
-    @State private var favoritesManager = FavoritesManager.shared
-    @State private var likeStatusManager = SongLikeStatusManager.shared
-    @State private var accountService: AccountService?
-    @State private var scrobblingCoordinator: ScrobblingCoordinator
+    @StateObject private var favoritesManager: FavoritesManager
+    @StateObject private var likeStatusManager: SongLikeStatusManager
+    @StateObject private var accountService: AccountService
+    @StateObject private var scrobblingCoordinator: ScrobblingCoordinator
 
     /// Triggers search field focus when set to true.
     @State private var searchFocusTrigger = false
@@ -70,12 +86,12 @@ struct KasetApp: App {
             account?.currentBrandId
         }
 
-        _authService = State(initialValue: auth)
-        _webKitManager = State(initialValue: webkit)
-        _playerService = State(initialValue: player)
+        _authService = StateObject(wrappedValue: auth)
+        _webKitManager = StateObject(wrappedValue: webkit)
+        _playerService = StateObject(wrappedValue: player)
         _sharedClient = State(initialValue: client)
         _notificationService = State(initialValue: NotificationService(playerService: player))
-        _accountService = State(initialValue: account)
+        _accountService = StateObject(wrappedValue: account)
 
         // Create scrobbling coordinator
         let lastFMService = LastFMService(credentialStore: KeychainCredentialStore())
@@ -85,7 +101,11 @@ struct KasetApp: App {
         )
         scrobblingCoordinator.restoreAuthState()
         scrobblingCoordinator.startMonitoring()
-        _scrobblingCoordinator = State(initialValue: scrobblingCoordinator)
+        _scrobblingCoordinator = StateObject(wrappedValue: scrobblingCoordinator)
+
+        // Restore favorites and like status managers from shared instances
+        _favoritesManager = StateObject(wrappedValue: FavoritesManager.shared)
+        _likeStatusManager = StateObject(wrappedValue: SongLikeStatusManager.shared)
 
         // Wire up PlayerService to AppDelegate immediately (not in onAppear)
         // This ensures playerService is available for lifecycle events like queue restoration
@@ -104,13 +124,13 @@ struct KasetApp: App {
                     .frame(width: 1, height: 1)
             } else {
                 MainWindow(navigationSelection: self.$navigationSelection, client: self.sharedClient)
-                    .environment(self.authService)
-                    .environment(self.webKitManager)
-                    .environment(self.playerService)
-                    .environment(self.favoritesManager)
-                    .environment(self.likeStatusManager)
-                    .environment(self.accountService)
-                    .environment(self.scrobblingCoordinator)
+                    .environmentObject(self.authService)
+                    .environmentObject(self.webKitManager)
+                    .environmentObject(self.playerService)
+                    .environmentObject(self.favoritesManager)
+                    .environmentObject(self.likeStatusManager)
+                    .environmentObject(self.accountService)
+                    .environmentObject(self.scrobblingCoordinator)
                     .environment(\.searchFocusTrigger, self.$searchFocusTrigger)
                     .environment(\.navigationSelection, self.$navigationSelection)
                     .environment(\.showCommandBar, self.$showCommandBar)
@@ -126,10 +146,12 @@ struct KasetApp: App {
                         await self.authService.checkLoginStatus()
 
                         // Fetch accounts after login check (for account switcher)
-                        await self.accountService?.fetchAccounts()
+                        await self.accountService.fetchAccounts()
 
+                        #if canImport(FoundationModels)
                         // Warm up Foundation Models in background
                         await FoundationModelsService.shared.warmup()
+                        #endif
                     }
                     .onOpenURL { url in
                         self.handleIncomingURL(url)
@@ -139,9 +161,9 @@ struct KasetApp: App {
 
         Settings {
             SettingsView()
-                .environment(self.authService)
-                .environment(self.updaterService)
-                .environment(self.scrobblingCoordinator)
+                .environmentObject(self.authService)
+                .environmentObject(self.updaterService)
+                .environmentObject(self.scrobblingCoordinator)
         }
         .commands {
             // Check for Updates command in app menu
@@ -199,12 +221,13 @@ struct KasetApp: App {
                 }
                 .keyboardShortcut(.downArrow, modifiers: .command)
 
-                // Mute
+                // Mute - ⌘⇧M
                 Button(self.playerService.isMuted ? "Unmute" : "Mute") {
                     Task {
                         await self.playerService.toggleMute()
                     }
                 }
+                .keyboardShortcut("m", modifiers: [.command, .shift])
 
                 Divider()
 
@@ -358,10 +381,10 @@ struct KasetApp: App {
 // MARK: - SettingsView
 
 /// Main settings view with tabbed navigation.
-@available(macOS 26.0, *)
+
 struct SettingsView: View {
-    @Environment(UpdaterService.self) private var updaterService
-    @Environment(ScrobblingCoordinator.self) private var scrobblingCoordinator
+    @EnvironmentObject private var updaterService: UpdaterService
+    @EnvironmentObject private var scrobblingCoordinator: ScrobblingCoordinator
 
     var body: some View {
         TabView {
@@ -370,13 +393,15 @@ struct SettingsView: View {
                     Label("General", systemImage: "gearshape")
                 }
 
+#if canImport(FoundationModels)
             IntelligenceSettingsView()
                 .tabItem {
                     Label("Intelligence", systemImage: "sparkles")
                 }
+#endif
 
             ScrobblingSettingsView()
-                .environment(self.scrobblingCoordinator)
+                .environmentObject(self.scrobblingCoordinator)
                 .tabItem {
                     Label("Scrobbling", systemImage: "music.note.list")
                 }

@@ -4,10 +4,10 @@ import SwiftUI
 
 /// View modifier that adds common navigation destinations for Playlist, Artist, MoodCategory, and TopSongsDestination.
 /// Note: Lyrics sidebar is handled globally in MainWindow, outside the NavigationSplitView.
-@available(macOS 26.0, *)
+
 struct NavigationDestinationsModifier: ViewModifier {
     let client: any YTMusicClientProtocol
-    @Environment(LibraryViewModel.self) private var libraryViewModel: LibraryViewModel?
+    @EnvironmentObject private var libraryViewModel: LibraryViewModel
 
     func body(content: Content) -> some View {
         content
@@ -36,6 +36,7 @@ struct NavigationDestinationsModifier: ViewModifier {
                                 client: self.client
                             )
                         )
+                        .environmentObject(self.libraryViewModel)
                     }
                 } else {
                     PlaylistDetailView(
@@ -45,6 +46,7 @@ struct NavigationDestinationsModifier: ViewModifier {
                             client: self.client
                         )
                     )
+                    .environmentObject(self.libraryViewModel)
                 }
             }
             .navigationDestination(for: MoodCategory.self) { (category: MoodCategory) in
@@ -70,14 +72,14 @@ struct NavigationDestinationsModifier: ViewModifier {
                     client: self.client
                 ))
             }
-            .navigationDestination(for: PodcastShow.self) { [libraryViewModel] show in
+            .navigationDestination(for: PodcastShow.self) { show in
                 PodcastShowView(show: show, client: self.client)
-                    .environment(libraryViewModel)
+                    .environmentObject(libraryViewModel)
             }
     }
 }
 
-@available(macOS 26.0, *)
+
 extension View {
     /// Adds common navigation destinations for Playlist, Artist, MoodCategory, and TopSongsDestination.
     func navigationDestinations(client: any YTMusicClientProtocol) -> some View {

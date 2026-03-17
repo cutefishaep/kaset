@@ -1,27 +1,26 @@
+import Combine
 import Foundation
-import Observation
 import os
 
 /// View model for the Moods & Genres view.
 @MainActor
-@Observable
-final class MoodsAndGenresViewModel {
+final class MoodsAndGenresViewModel: ObservableObject {
     /// Current loading state.
-    private(set) var loadingState: LoadingState = .idle
+    @Published private(set) var loadingState: LoadingState = .idle
 
     /// Moods & Genres sections to display.
-    private(set) var sections: [HomeSection] = []
+    @Published private(set) var sections: [HomeSection] = []
 
     /// Whether more sections are available to load.
-    private(set) var hasMoreSections: Bool = true
+    @Published private(set) var hasMoreSections: Bool = true
 
     /// The API client (exposed for navigation to detail views).
     let client: any YTMusicClientProtocol
     private let logger = DiagnosticsLogger.api
     // swiftformat:disable modifierOrder
     /// Task for background loading, cancelled in deinit.
-    /// nonisolated(unsafe) required for deinit access; Swift 6.2 warning is expected.
-    nonisolated(unsafe) private var backgroundLoadTask: Task<Void, Never>?
+    /// required for deinit access; Swift 6.2 warning is expected.
+    private var backgroundLoadTask: Task<Void, Never>?
     // swiftformat:enable modifierOrder
 
     /// Number of background continuations loaded.

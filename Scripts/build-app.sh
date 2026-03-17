@@ -131,9 +131,9 @@ cat > "$APP_BUNDLE/Contents/Info.plist" <<PLIST
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.music</string>
     <key>LSMinimumSystemVersion</key>
-    <string>26.0</string>
+    <string>13.0</string>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright © 2025 Sertac Ozercan. All rights reserved.</string>
+    <string>Copyright © 2026 cutefishaep. All rights reserved.</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
     <key>LSUIElement</key>
@@ -208,7 +208,7 @@ if [[ -d "$XCASSETS_PATH" ]] && command -v actool &>/dev/null; then
   echo "🎨 Compiling asset catalog..."
   actool --compile "$APP_BUNDLE/Contents/Resources" \
     --platform macosx \
-    --minimum-deployment-target 26.0 \
+    --minimum-deployment-target 13.0 \
     "$XCASSETS_PATH" 2>/dev/null || true
 fi
 

@@ -3,11 +3,11 @@ import SwiftUI
 // MARK: - PodcastsView
 
 /// Podcasts discovery view displaying podcast shows and episodes.
-@available(macOS 26.0, *)
+
 struct PodcastsView: View {
-    @State var viewModel: PodcastsViewModel
-    @Environment(PlayerService.self) private var playerService
-    @Environment(FavoritesManager.self) private var favoritesManager
+    @ObservedObject var viewModel: PodcastsViewModel
+    @EnvironmentObject private var playerService: PlayerService
+    @EnvironmentObject private var favoritesManager: FavoritesManager
     @State private var navigationPath = NavigationPath()
     @State private var networkMonitor = NetworkMonitor.shared
 
@@ -40,9 +40,6 @@ struct PodcastsView: View {
                 PodcastShowView(show: show, client: self.viewModel.client)
             }
             .navigationDestinations(client: self.viewModel.client)
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            PlayerBar()
         }
         .onAppear {
             if self.viewModel.loadingState == .idle {
@@ -121,7 +118,7 @@ struct PodcastsView: View {
 
 // MARK: - PodcastShowCard
 
-@available(macOS 26.0, *)
+
 private struct PodcastShowCard: View {
     let show: PodcastShow
     let favoritesManager: FavoritesManager
@@ -165,7 +162,7 @@ private struct PodcastShowCard: View {
 
 // MARK: - PodcastEpisodeCard
 
-@available(macOS 26.0, *)
+
 private struct PodcastEpisodeCard: View {
     let episode: PodcastEpisode
     let action: () -> Void
@@ -234,13 +231,13 @@ private struct PodcastEpisodeCard: View {
 // MARK: - PodcastShowView
 
 /// Detail view for a podcast show with its episodes.
-@available(macOS 26.0, *)
+
 struct PodcastShowView: View {
     let show: PodcastShow
     let client: any YTMusicClientProtocol
-    @Environment(PlayerService.self) private var playerService
-    @Environment(FavoritesManager.self) private var favoritesManager
-    @Environment(LibraryViewModel.self) private var libraryViewModel: LibraryViewModel?
+    @EnvironmentObject private var playerService: PlayerService
+    @EnvironmentObject private var favoritesManager: FavoritesManager
+    @EnvironmentObject private var libraryViewModel: LibraryViewModel
 
     @State private var episodes: [PodcastEpisode] = []
     @State private var continuationToken: String?
@@ -283,9 +280,6 @@ struct PodcastShowView: View {
                 continuationToken: self.continuationToken,
                 client: self.client
             )
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            PlayerBar()
         }
         .task {
             await self.loadShow()
@@ -492,7 +486,7 @@ struct PodcastShowView: View {
 
 // MARK: - PodcastEpisodeRow
 
-@available(macOS 26.0, *)
+
 struct PodcastEpisodeRow: View {
     let episode: PodcastEpisode
     let action: () -> Void
@@ -579,14 +573,14 @@ struct AllEpisodesDestination: Hashable {
 // MARK: - AllEpisodesView
 
 /// View displaying all episodes of a podcast show with infinite scroll pagination.
-@available(macOS 26.0, *)
+
 struct AllEpisodesView: View {
     let show: PodcastShow
     let initialEpisodes: [PodcastEpisode]
     let continuationToken: String?
     let client: any YTMusicClientProtocol
 
-    @Environment(PlayerService.self) private var playerService
+    @EnvironmentObject private var playerService: PlayerService
     @State private var episodes: [PodcastEpisode] = []
     @State private var currentContinuationToken: String?
     @State private var isLoadingMore = false
@@ -617,9 +611,6 @@ struct AllEpisodesView: View {
         }
         .accentBackground(from: self.show.thumbnailURL)
         .navigationTitle("All Episodes")
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            PlayerBar()
-        }
         .onAppear {
             // Initialize with episodes passed from parent
             if self.episodes.isEmpty {
@@ -666,9 +657,14 @@ struct AllEpisodesView: View {
     }
 }
 
+#if false
+#if false
 #Preview {
     let authService = AuthService()
     let client = YTMusicClient(authService: authService, webKitManager: .shared)
-    PodcastsView(viewModel: PodcastsViewModel(client: client))
-        .environment(PlayerService())
+    return PodcastsView(viewModel: PodcastsViewModel(client: client))
+        .environmentObject(PlayerService())
+        .environmentObject(FavoritesManager.shared)
 }
+#endif
+#endif

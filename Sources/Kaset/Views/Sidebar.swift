@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Sidebar navigation for the main window, styled like Apple Music.
-@available(macOS 26.0, *)
+
 struct Sidebar: View {
     @Binding var selection: NavigationItem?
 
@@ -10,8 +10,7 @@ struct Sidebar: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            GlassEffectContainer(spacing: 0) {
-                List(selection: self.$selection) {
+            List(selection: self.$selection) {
                     // Main navigation
                     Section {
                         NavigationLink(value: NavigationItem.search) {
@@ -68,12 +67,11 @@ struct Sidebar: View {
                 }
                 .listStyle(.sidebar)
                 .accessibilityIdentifier(AccessibilityID.Sidebar.container)
-                .onChange(of: self.selection) { _, newValue in
+                .onChange(of: self.selection) { newValue in
                     if newValue != nil {
                         HapticService.navigation()
                     }
                 }
-            }
 
             Divider()
                 .opacity(0.3)
@@ -85,8 +83,12 @@ struct Sidebar: View {
     }
 }
 
-@available(macOS 26.0, *)
+
+#if false
+#if false
 #Preview {
     Sidebar(selection: .constant(.home))
         .frame(width: 220)
 }
+#endif
+#endif

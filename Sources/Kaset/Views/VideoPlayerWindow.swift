@@ -4,9 +4,9 @@ import WebKit
 // MARK: - VideoPlayerWindow
 
 /// Floating window for video playback.
-@available(macOS 26.0, *)
+
 struct VideoPlayerWindow: View {
-    @Environment(PlayerService.self) private var playerService
+    @EnvironmentObject private var playerService: PlayerService
 
     var body: some View {
         // Video content (WebView container) with native HTML5 controls
@@ -21,13 +21,17 @@ struct VideoPlayerWindow: View {
 // MARK: - VideoWebViewContainer
 
 /// NSViewRepresentable container for the video WebView.
-@available(macOS 26.0, *)
+
 struct VideoWebViewContainer: NSViewRepresentable {
     func makeNSView(context _: Context) -> VideoContainerView {
         DiagnosticsLogger.player.info("VideoWebViewContainer.makeNSView called")
         let container = VideoContainerView()
         container.wantsLayer = true
         container.layer?.backgroundColor = NSColor.black.cgColor
+        
+        // Reparent immediately to ensure it works on macOS versions where updateNSView is deferred
+        SingletonPlayerWebView.shared.ensureInHierarchy(container: container)
+        
         return container
     }
 
@@ -41,7 +45,7 @@ struct VideoWebViewContainer: NSViewRepresentable {
 // MARK: - VideoContainerView
 
 /// Custom NSView that observes frame changes and re-injects CSS.
-@available(macOS 26.0, *)
+
 final class VideoContainerView: NSView {
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -75,9 +79,13 @@ final class VideoContainerView: NSView {
 
 // MARK: - Preview
 
-@available(macOS 26.0, *)
+
+#if false
+#if false
 #Preview {
     VideoPlayerWindow()
-        .environment(PlayerService())
+        .environmentObject(PlayerService())
         .frame(width: 480, height: 270)
 }
+#endif
+#endif

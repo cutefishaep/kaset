@@ -5,10 +5,10 @@ import UniformTypeIdentifiers
 
 /// A horizontal scrolling section displaying pinned Favorites items.
 /// Supports drag-and-drop reordering and context menu actions.
-@available(macOS 26.0, *)
+
 struct FavoritesSection: View {
-    @Environment(PlayerService.self) private var playerService
-    @Environment(FavoritesManager.self) private var favoritesManager
+    @EnvironmentObject private var playerService: PlayerService
+    @EnvironmentObject private var favoritesManager: FavoritesManager
     @State private var draggedItem: FavoriteItem?
     @State private var navigationPath: NavigationPath?
 
@@ -212,7 +212,7 @@ struct FavoritesSection: View {
 // MARK: - FavoriteItemCard
 
 /// A card view for a single Favorites item.
-@available(macOS 26.0, *)
+
 private struct FavoriteItemCard: View {
     let item: FavoriteItem
     let onTap: () -> Void
@@ -328,7 +328,9 @@ private struct FavoriteItemCard: View {
 
 // MARK: - Preview
 
-@available(macOS 26.0, *)
+
+#if false
+#if false
 #Preview {
     let manager = FavoritesManager(skipLoad: true)
     // Add some sample items for preview
@@ -351,7 +353,9 @@ private struct FavoriteItemCard: View {
     manager.add(.from(album))
 
     return FavoritesSection()
-        .environment(manager)
-        .environment(PlayerService())
+        .environmentObject(manager)
+        .environmentObject(PlayerService())
         .padding()
 }
+#endif
+#endif

@@ -1,13 +1,15 @@
+#if canImport(FoundationModels)
 import FoundationModels
+#endif
 import SwiftUI
 
 // MARK: - CommandBarView
 
 /// A floating command bar for natural language music control.
 /// Accessible via Cmd+K, allows users to control playback with voice-like commands.
-@available(macOS 26.0, *)
+
 struct CommandBarView: View {
-    @Environment(PlayerService.self) private var playerService
+    @EnvironmentObject private var playerService: PlayerService
 
     /// The YTMusicClient for search operations.
     let client: any YTMusicClientProtocol
@@ -291,6 +293,7 @@ struct CommandBarView: View {
             return
         }
 
+        #if canImport(FoundationModels)
         let searchTool = MusicSearchTool(client: self.client)
         let queueTool = QueueTool(playerService: self.playerService)
 
@@ -308,7 +311,6 @@ struct CommandBarView: View {
             await self.executeIntent(response.content)
         } catch {
             // Check if this is a deserialization/generation error
-            // Check both String(describing:) and localizedDescription for coverage
             let errorDescription = String(describing: error)
             let localizedDesc = error.localizedDescription
             let combinedDesc = "\(errorDescription) \(localizedDesc)"
@@ -330,6 +332,10 @@ struct CommandBarView: View {
                 self.logger.info("Command processing cancelled")
             }
         }
+        #else
+        // Fallback for macOS 13 without Apple Intelligence
+        await self.fallbackDirectSearch(query: query)
+        #endif
 
         self.isProcessing = false
     }
@@ -518,6 +524,7 @@ struct CommandBarView: View {
         return nil
     }
 
+    #if canImport(FoundationModels)
     private func executeIntent(_ intent: MusicIntent) async {
         // Build the search query from parsed components
         let searchQuery = intent.buildSearchQuery()
@@ -603,6 +610,7 @@ struct CommandBarView: View {
             self.dismissCommandBar()
         }
     }
+    #endif
 
     private func playSearchResult(query: String, description: String = "") async {
         do {
@@ -673,6 +681,7 @@ struct CommandBarView: View {
     // MARK: - Content Routing
 
     /// Plays content from the best source based on the intent.
+    #if canImport(FoundationModels)
     private func playContent(intent: MusicIntent, query: String, description: String, source: ContentSource) async {
         switch source {
         case .moodsAndGenres:
@@ -700,8 +709,10 @@ struct CommandBarView: View {
             await self.playSearchResult(query: query, description: description)
         }
     }
+    #endif
 
     /// Queues content from the best source based on the intent.
+    #if canImport(FoundationModels)
     private func queueContent(intent: MusicIntent, query: String, description: String, source: ContentSource) async {
         switch source {
         case .moodsAndGenres:
@@ -734,8 +745,10 @@ struct CommandBarView: View {
             await self.queueSearchResult(query: query, description: description)
         }
     }
+    #endif
 
     /// Finds songs from Moods & Genres that match the intent.
+    #if canImport(FoundationModels)
     private func findSongsFromMoodsAndGenres(intent: MusicIntent) async -> [Song]? {
         do {
             let response = try await client.getMoodsAndGenres()
@@ -779,6 +792,7 @@ struct CommandBarView: View {
             return nil
         }
     }
+    #endif
 
     /// Finds top songs from Charts.
     private func findSongsFromCharts() async -> [Song]? {
@@ -809,6 +823,7 @@ struct CommandBarView: View {
         return Array(response.detail.tracks.prefix(25))
     }
 
+#if canImport(FoundationModels)
     /// Builds search terms from intent components, including mood synonyms.
     private func buildSearchTerms(from intent: MusicIntent) -> [String] {
         var terms: [String] = []
@@ -831,6 +846,7 @@ struct CommandBarView: View {
 
         return terms
     }
+#endif
 
     /// Returns synonyms for common moods to improve playlist matching.
     private func moodSynonyms(for mood: String) -> [String] {
@@ -861,7 +877,7 @@ struct CommandBarView: View {
 
 // MARK: - SuggestionChip
 
-@available(macOS 26.0, *)
+
 private struct SuggestionChip: View {
     let text: String
     let action: () -> Void
@@ -879,12 +895,15 @@ private struct SuggestionChip: View {
     }
 }
 
+#if false
+#if false
 #Preview {
-    @Previewable @State var isPresented = true
     let authService = AuthService()
     let client = YTMusicClient(authService: authService, webKitManager: .shared)
-    CommandBarView(client: client, isPresented: $isPresented)
-        .environment(PlayerService())
+    return CommandBarView(client: client, isPresented: .constant(true))
+        .environmentObject(PlayerService())
         .padding(40)
         .frame(width: 600, height: 300)
 }
+#endif
+#endif

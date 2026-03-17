@@ -1,12 +1,11 @@
+import Combine
 import Foundation
-import Observation
 
 /// Bridges PlayerService to scrobbling backends.
 /// Polls PlayerService at 500ms intervals (matching NotificationService pattern),
 /// tracks accumulated play time, and triggers scrobbles when thresholds are met.
 @MainActor
-@Observable
-final class ScrobblingCoordinator {
+final class ScrobblingCoordinator: ObservableObject {
     // MARK: - Dependencies
 
     private let playerService: PlayerService
@@ -52,17 +51,17 @@ final class ScrobblingCoordinator {
 
     // swiftformat:disable modifierOrder
     /// Polling task, cancelled in deinit.
-    nonisolated(unsafe) private var pollingTask: Task<Void, Never>?
+    private var pollingTask: Task<Void, Never>?
 
     /// Queue flush task, cancelled in deinit.
-    nonisolated(unsafe) private var flushTask: Task<Void, Never>?
+    private var flushTask: Task<Void, Never>?
 
     /// Now-playing tasks, cancelled in stopMonitoring/deinit.
-    nonisolated(unsafe) private var nowPlayingTasks: [Task<Void, Never>] = []
+    private var nowPlayingTasks: [Task<Void, Never>] = []
     // swiftformat:enable modifierOrder
 
     /// Whether the coordinator is actively monitoring.
-    private(set) var isMonitoring = false
+    @Published private(set) var isMonitoring = false
 
     // MARK: - Init
 
@@ -76,12 +75,12 @@ final class ScrobblingCoordinator {
         playerService: PlayerService,
         settingsManager: SettingsManager = .shared,
         services: [any ScrobbleServiceProtocol],
-        queue: ScrobbleQueue = ScrobbleQueue()
+        queue: ScrobbleQueue? = nil
     ) {
         self.playerService = playerService
         self.settingsManager = settingsManager
         self.services = services
-        self.queue = queue
+        self.queue = queue ?? ScrobbleQueue()
     }
 
     deinit {

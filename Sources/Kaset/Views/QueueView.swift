@@ -3,17 +3,17 @@ import SwiftUI
 // MARK: - QueueView
 
 /// Right sidebar panel displaying the playback queue.
-@available(macOS 26.0, *)
+
 struct QueueView: View {
-    @Environment(PlayerService.self) private var playerService
-    @Environment(FavoritesManager.self) private var favoritesManager
+    @EnvironmentObject private var playerService: PlayerService
+    @EnvironmentObject private var favoritesManager: FavoritesManager
     @Environment(\.showCommandBar) private var showCommandBar
 
     /// Namespace for glass effect morphing.
     @Namespace private var queueNamespace
 
     var body: some View {
-        GlassEffectContainer(spacing: 0) {
+        VStack(spacing: 0) {
             VStack(spacing: 0) {
                 // Header
                 self.headerView
@@ -25,10 +25,9 @@ struct QueueView: View {
                 self.contentView
             }
             .frame(width: 280)
-            .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 20))
-            .glassEffectID("queuePanel", in: self.queueNamespace)
+            .background(.regularMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
         }
-        .glassEffectTransition(.materialize)
         .accessibilityIdentifier(AccessibilityID.Queue.container)
     }
 
@@ -131,7 +130,8 @@ struct QueueView: View {
 
 // MARK: - QueueRowView
 
-@available(macOS 26.0, *)
+
+@MainActor
 private struct QueueRowView: View {
     let song: Song
     let isCurrentTrack: Bool
@@ -224,11 +224,6 @@ private struct QueueRowView: View {
             Image(systemName: "waveform")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(self.playerService.isPlaying ? AnyShapeStyle(.red) : AnyShapeStyle(.tertiary))
-                .symbolEffect(
-                    .variableColor.iterative,
-                    options: .repeating,
-                    isActive: self.playerService.isPlaying
-                )
         } else {
             Text("\(self.index + 1)")
                 .font(.system(size: 12))
@@ -252,21 +247,25 @@ private struct QueueRowView: View {
     }
 }
 
-@available(macOS 26.0, *)
+
+#if false
 #Preview("Queue View") {
     let playerService = PlayerService()
-    QueueView()
-        .environment(playerService)
-        .environment(FavoritesManager.shared)
+    return QueueView()
+        .environmentObject(playerService)
+        .environmentObject(FavoritesManager.shared)
         .frame(height: 600)
 }
+#endif
 
-@available(macOS 26.0, *)
+
+#if false
 #Preview("Queue View with Items") {
     let playerService = PlayerService()
     // Note: In real use, queue would be populated via playQueue()
-    QueueView()
-        .environment(playerService)
-        .environment(FavoritesManager.shared)
+    return QueueView()
+        .environmentObject(playerService)
+        .environmentObject(FavoritesManager.shared)
         .frame(height: 600)
 }
+#endif

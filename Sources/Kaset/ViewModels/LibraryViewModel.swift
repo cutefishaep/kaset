@@ -1,31 +1,30 @@
+import Combine
 import Foundation
-import Observation
 import os
 
 /// View model for the Library view.
 @MainActor
-@Observable
-final class LibraryViewModel {
+final class LibraryViewModel: ObservableObject {
     /// Current loading state.
-    private(set) var loadingState: LoadingState = .idle
+    @Published private(set) var loadingState: LoadingState = .idle
 
     /// User's playlists.
-    private(set) var playlists: [Playlist] = []
+    @Published private(set) var playlists: [Playlist] = []
 
     /// User's subscribed podcast shows.
-    private(set) var podcastShows: [PodcastShow] = []
+    @Published private(set) var podcastShows: [PodcastShow] = []
 
     /// Set of playlist IDs that are in the user's library (for quick lookup).
-    private(set) var libraryPlaylistIds: Set<String> = []
+    @Published private(set) var libraryPlaylistIds: Set<String> = []
 
     /// Set of podcast show IDs that are in the user's library (for quick lookup).
-    private(set) var libraryPodcastIds: Set<String> = []
+    @Published private(set) var libraryPodcastIds: Set<String> = []
 
     /// Selected playlist detail.
-    private(set) var selectedPlaylistDetail: PlaylistDetail?
+    @Published private(set) var selectedPlaylistDetail: PlaylistDetail?
 
     /// Loading state for playlist detail.
-    private(set) var playlistDetailLoadingState: LoadingState = .idle
+    @Published private(set) var playlistDetailLoadingState: LoadingState = .idle
 
     /// The API client (exposed for navigation to detail views).
     let client: any YTMusicClientProtocol

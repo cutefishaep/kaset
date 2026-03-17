@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import os
 import Security
@@ -366,8 +367,7 @@ enum LegacyCookieMigration {
 
 /// Manages WebKit data store for persistent cookies and session management.
 @MainActor
-@Observable
-final class WebKitManager: NSObject, WebKitManagerProtocol {
+final class WebKitManager: NSObject, ObservableObject, WebKitManagerProtocol {
     /// Shared singleton instance.
     static let shared = WebKitManager()
 
@@ -375,7 +375,7 @@ final class WebKitManager: NSObject, WebKitManagerProtocol {
     let dataStore: WKWebsiteDataStore
 
     /// Timestamp of the last cookie change (for observation).
-    private(set) var cookiesDidChange: Date = .distantPast
+    @Published private(set) var cookiesDidChange: Date = .distantPast
 
     /// Flag to prevent cookie backups while restoring from Keychain.
     private var isRestoringCookies = false

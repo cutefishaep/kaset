@@ -1,12 +1,13 @@
 import SwiftUI
 
 /// View displaying the user's liked songs.
-@available(macOS 26.0, *)
+
 struct LikedMusicView: View {
-    @State var viewModel: LikedMusicViewModel
-    @Environment(PlayerService.self) private var playerService
-    @Environment(FavoritesManager.self) private var favoritesManager
-    @Environment(SongLikeStatusManager.self) private var likeStatusManager
+    @ObservedObject var viewModel: LikedMusicViewModel
+    @EnvironmentObject private var playerService: PlayerService
+    @EnvironmentObject private var favoritesManager: FavoritesManager
+    @EnvironmentObject private var likeStatusManager: SongLikeStatusManager
+    @EnvironmentObject private var libraryViewModel: LibraryViewModel
     @State private var networkMonitor = NetworkMonitor.shared
 
     @State private var navigationPath = NavigationPath()
@@ -61,10 +62,8 @@ struct LikedMusicView: View {
                         client: self.viewModel.client
                     )
                 )
+                .environmentObject(self.libraryViewModel)
             }
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            PlayerBar()
         }
         .task {
             if self.viewModel.loadingState == .idle {
@@ -308,10 +307,15 @@ struct LikedMusicView: View {
     }
 }
 
+#if false
+#if false
 #Preview {
     let authService = AuthService()
     let client = YTMusicClient(authService: authService, webKitManager: .shared)
-    LikedMusicView(viewModel: LikedMusicViewModel(client: client))
-        .environment(PlayerService())
-        .environment(FavoritesManager.shared)
+    return LikedMusicView(viewModel: LikedMusicViewModel(client: client))
+        .environmentObject(PlayerService())
+        .environmentObject(FavoritesManager.shared)
+        .environmentObject(SongLikeStatusManager.shared)
 }
+#endif
+#endif

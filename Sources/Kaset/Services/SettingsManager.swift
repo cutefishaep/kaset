@@ -1,10 +1,9 @@
+import Combine
 import Foundation
-import Observation
 
 /// Manages user preferences persisted via UserDefaults.
 @MainActor
-@Observable
-final class SettingsManager {
+final class SettingsManager: ObservableObject {
     static let shared = SettingsManager()
 
     // MARK: - Settings Keys
@@ -18,6 +17,21 @@ final class SettingsManager {
         static let enabledServices = "settings.enabledServices"
         static let scrobblePercentThreshold = "settings.scrobblePercentThreshold"
         static let scrobbleMinSeconds = "settings.scrobbleMinSeconds"
+
+        // Lyrics & AdBlock
+        static let adBlockEnabled = "settings.adBlockEnabled"
+        static let lyricsProvider = "settings.lyricsProvider"
+        static let lyricsOffset = "settings.lyricsOffset"
+        static let lyricsFontSize = "settings.lyricsFontSize"
+    }
+
+    // MARK: - Providers
+
+    enum LyricsProvider: String, CaseIterable, Identifiable {
+        case simpmusic = "SimpMusic"
+        case lrclib = "LRCLIB"
+        
+        var id: String { rawValue }
     }
 
     // MARK: - Launch Page Options
@@ -68,28 +82,28 @@ final class SettingsManager {
     // MARK: - Settings Properties
 
     /// Whether to show system notifications when the track changes.
-    var showNowPlayingNotifications: Bool {
+    @Published var showNowPlayingNotifications: Bool {
         didSet {
             UserDefaults.standard.set(self.showNowPlayingNotifications, forKey: Keys.showNowPlayingNotifications)
         }
     }
 
     /// The default page to show when the app launches.
-    var defaultLaunchPage: LaunchPage {
+    @Published var defaultLaunchPage: LaunchPage {
         didSet {
             UserDefaults.standard.set(self.defaultLaunchPage.rawValue, forKey: Keys.defaultLaunchPage)
         }
     }
 
     /// Whether haptic feedback is enabled.
-    var hapticFeedbackEnabled: Bool {
+    @Published var hapticFeedbackEnabled: Bool {
         didSet {
             UserDefaults.standard.set(self.hapticFeedbackEnabled, forKey: Keys.hapticFeedbackEnabled)
         }
     }
 
     /// Whether to remember shuffle/repeat settings across app restarts.
-    var rememberPlaybackSettings: Bool {
+    @Published var rememberPlaybackSettings: Bool {
         didSet {
             UserDefaults.standard.set(self.rememberPlaybackSettings, forKey: Keys.rememberPlaybackSettings)
             // Clear stale values when setting is disabled to prevent unexpected restoration
@@ -101,7 +115,7 @@ final class SettingsManager {
     }
 
     /// Per-service enabled flags stored as a dictionary.
-    private var enabledServices: [String: Bool] {
+    @Published private var enabledServices: [String: Bool] {
         didSet {
             UserDefaults.standard.set(self.enabledServices, forKey: Keys.enabledServices)
         }
@@ -124,21 +138,48 @@ final class SettingsManager {
     }
 
     /// Percentage of track duration required before scrobbling (0.0–1.0).
-    var scrobblePercentThreshold: Double {
+    @Published var scrobblePercentThreshold: Double {
         didSet {
             UserDefaults.standard.set(self.scrobblePercentThreshold, forKey: Keys.scrobblePercentThreshold)
         }
     }
 
     /// Minimum seconds of play time before scrobbling (overrides percentage for long tracks).
-    var scrobbleMinSeconds: TimeInterval {
+    @Published var scrobbleMinSeconds: TimeInterval {
         didSet {
             UserDefaults.standard.set(self.scrobbleMinSeconds, forKey: Keys.scrobbleMinSeconds)
         }
     }
 
     /// The last page the user was on (for "Last Used" option).
-    var lastUsedPage: LaunchPage = .home
+    @Published var lastUsedPage: LaunchPage = .home
+
+    // MARK: - New Settings 
+    
+    @Published var adBlockEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(self.adBlockEnabled, forKey: Keys.adBlockEnabled)
+        }
+    }
+
+    @Published var lyricsProvider: LyricsProvider {
+        didSet {
+            UserDefaults.standard.set(self.lyricsProvider.rawValue, forKey: Keys.lyricsProvider)
+        }
+    }
+
+    @Published var lyricsOffset: Double {
+        didSet {
+            UserDefaults.standard.set(self.lyricsOffset, forKey: Keys.lyricsOffset)
+        }
+    }
+
+    /// Size of the lyrics font
+    @Published var lyricsFontSize: Double {
+        didSet {
+            UserDefaults.standard.set(self.lyricsFontSize, forKey: Keys.lyricsFontSize)
+        }
+    }
 
     // MARK: - Initialization
 
@@ -167,6 +208,18 @@ final class SettingsManager {
         } else {
             self.defaultLaunchPage = .home
         }
+
+        self.adBlockEnabled = UserDefaults.standard.object(forKey: Keys.adBlockEnabled) as? Bool ?? true
+        
+        if let providerRaw = UserDefaults.standard.string(forKey: Keys.lyricsProvider),
+           let provider = LyricsProvider(rawValue: providerRaw) {
+            self.lyricsProvider = provider
+        } else {
+            self.lyricsProvider = .simpmusic
+        }
+
+        self.lyricsOffset = UserDefaults.standard.object(forKey: Keys.lyricsOffset) as? Double ?? -1.5
+        self.lyricsFontSize = UserDefaults.standard.object(forKey: Keys.lyricsFontSize) as? Double ?? 28.0
 
         // Persist migration from legacy lastFMEnabled key (must run after all properties initialized)
         if UserDefaults.standard.object(forKey: Keys.enabledServices) == nil,

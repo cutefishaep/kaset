@@ -1,16 +1,16 @@
 import AppKit
+import Combine
 import Foundation
 
 /// Last.fm scrobbling service implementation.
 /// Communicates with the Cloudflare Worker proxy for API signing.
 /// All Last.fm API calls go through the Worker — no client-side signing.
 @MainActor
-@Observable
-final class LastFMService: ScrobbleServiceProtocol {
+final class LastFMService: ObservableObject, ScrobbleServiceProtocol {
     let serviceName = "Last.fm"
 
     /// Current authentication state.
-    private(set) var authState: ScrobbleAuthState = .disconnected
+    @Published private(set) var authState: ScrobbleAuthState = .disconnected
 
     private let credentialStore: KeychainCredentialStore
     private let session: URLSession
@@ -25,7 +25,7 @@ final class LastFMService: ScrobbleServiceProtocol {
 
     // swiftformat:disable modifierOrder
     /// Task for polling auth session, cancelled on deinit or disconnect.
-    nonisolated(unsafe) private var authPollingTask: Task<Void, Never>?
+    private var authPollingTask: Task<Void, Never>?
     // swiftformat:enable modifierOrder
 
     /// Creates a LastFMService with the given credential store and worker URL.
@@ -34,11 +34,11 @@ final class LastFMService: ScrobbleServiceProtocol {
     ///   - workerBaseURL: Base URL for the Cloudflare Worker. Defaults to value from bundle or environment.
     ///   - session: URLSession to use for network requests (injectable for testing).
     init(
-        credentialStore: KeychainCredentialStore = KeychainCredentialStore(),
+        credentialStore: KeychainCredentialStore? = nil,
         workerBaseURL: URL? = nil,
         session: URLSession = .shared
     ) {
-        self.credentialStore = credentialStore
+        self.credentialStore = credentialStore ?? KeychainCredentialStore()
         self.session = session
 
         // Resolve worker URL from parameter, environment, or bundle

@@ -1,12 +1,11 @@
 import SwiftUI
 
 /// Home view displaying personalized content sections.
-@available(macOS 26.0, *)
 struct HomeView: View {
-    @State var viewModel: HomeViewModel
-    @Environment(PlayerService.self) private var playerService
-    @Environment(FavoritesManager.self) private var favoritesManager
-    @Environment(SongLikeStatusManager.self) private var likeStatusManager
+    @ObservedObject var viewModel: HomeViewModel
+    @EnvironmentObject private var playerService: PlayerService
+    @EnvironmentObject private var favoritesManager: FavoritesManager
+    @EnvironmentObject private var likeStatusManager: SongLikeStatusManager
     @State private var navigationPath = NavigationPath()
     @State private var networkMonitor = NetworkMonitor.shared
 
@@ -36,9 +35,6 @@ struct HomeView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationTitle("Home")
             .navigationDestinations(client: self.viewModel.client)
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            PlayerBar()
         }
         .onAppear {
             if self.viewModel.loadingState == .idle {
@@ -298,10 +294,14 @@ struct HomeView: View {
     }
 }
 
+#if false
+#if false
 #Preview {
     let authService = AuthService()
     let client = YTMusicClient(authService: authService, webKitManager: .shared)
     HomeView(viewModel: HomeViewModel(client: client))
-        .environment(PlayerService())
-        .environment(FavoritesManager.shared)
+        .environmentObject(PlayerService())
+        .environmentObject(FavoritesManager.shared)
 }
+#endif
+#endif

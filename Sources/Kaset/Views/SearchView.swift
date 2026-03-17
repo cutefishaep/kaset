@@ -3,13 +3,13 @@ import SwiftUI
 // MARK: - SearchView
 
 /// Search view for finding music.
-@available(macOS 26.0, *)
+
 struct SearchView: View {
-    @State var viewModel: SearchViewModel
-    @Environment(PlayerService.self) private var playerService
-    @Environment(FavoritesManager.self) private var favoritesManager
-    @Environment(SongLikeStatusManager.self) private var likeStatusManager
-    @Environment(LibraryViewModel.self) private var libraryViewModel: LibraryViewModel?
+    @ObservedObject var viewModel: SearchViewModel
+    @EnvironmentObject private var playerService: PlayerService
+    @EnvironmentObject private var favoritesManager: FavoritesManager
+    @EnvironmentObject private var likeStatusManager: SongLikeStatusManager
+    @EnvironmentObject private var libraryViewModel: LibraryViewModel
     @State private var navigationPath = NavigationPath()
     @State private var networkMonitor = NetworkMonitor.shared
 
@@ -23,7 +23,7 @@ struct SearchView: View {
 
     /// Initializes SearchView with optional focus trigger binding.
     init(viewModel: SearchViewModel, focusTrigger: Binding<Bool> = .constant(false)) {
-        _viewModel = State(initialValue: viewModel)
+        self.viewModel = viewModel
         _focusTrigger = focusTrigger
     }
 
@@ -41,13 +41,10 @@ struct SearchView: View {
             .navigationTitle("Search")
             .navigationDestinations(client: self.viewModel.client)
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            PlayerBar()
-        }
         .onAppear {
             self.isSearchFieldFocused = true
         }
-        .onChange(of: self.focusTrigger) { _, newValue in
+        .onChange(of: self.focusTrigger) { newValue in
             if newValue {
                 self.isSearchFieldFocused = true
                 self.focusTrigger = false
@@ -77,11 +74,11 @@ struct SearchView: View {
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 16)
-        .onChange(of: self.viewModel.query) { _, _ in
+        .onChange(of: self.viewModel.query) { _ in
             self.selectedSuggestionIndex = -1
             self.viewModel.fetchSuggestions()
         }
-        .onChange(of: self.viewModel.suggestions) { _, _ in
+        .onChange(of: self.viewModel.suggestions) { _ in
             self.selectedSuggestionIndex = -1
         }
     }
@@ -104,30 +101,6 @@ struct SearchView: View {
                         self.viewModel.search()
                     }
                 }
-                .onKeyPress(.downArrow) {
-                    if self.viewModel.showSuggestions {
-                        self.selectedSuggestionIndex = min(
-                            self.selectedSuggestionIndex + 1,
-                            self.viewModel.suggestions.count - 1
-                        )
-                        return .handled
-                    }
-                    return .ignored
-                }
-                .onKeyPress(.upArrow) {
-                    if self.viewModel.showSuggestions {
-                        self.selectedSuggestionIndex = max(self.selectedSuggestionIndex - 1, -1)
-                        return .handled
-                    }
-                    return .ignored
-                }
-                .onKeyPress(.escape) {
-                    if self.viewModel.showSuggestions {
-                        self.viewModel.clearSuggestions()
-                        return .handled
-                    }
-                    return .ignored
-                }
 
             if !self.viewModel.query.isEmpty {
                 Button {
@@ -141,7 +114,7 @@ struct SearchView: View {
             }
         }
         .padding(10)
-        .glassEffect(.regular, in: .capsule)
+        .background(Capsule().fill(.ultraThinMaterial))
     }
 
     private var suggestionsDropdown: some View {
@@ -154,8 +127,7 @@ struct SearchView: View {
                 }
             }
         }
-        .glassEffect(.regular, in: .rect(cornerRadius: 8))
-        .glassEffectTransition(.materialize)
+        .background(RoundedRectangle(cornerRadius: 8).fill(.ultraThinMaterial))
         .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
     }
 
@@ -636,11 +608,17 @@ extension SearchResultItem {
     }
 }
 
+#if false
+#if false
 #Preview {
-    @Previewable @State var focusTrigger = false
     let authService = AuthService()
     let client = YTMusicClient(authService: authService, webKitManager: .shared)
-    SearchView(viewModel: SearchViewModel(client: client), focusTrigger: $focusTrigger)
-        .environment(PlayerService())
-        .environment(FavoritesManager.shared)
+    let viewModel = SearchViewModel(client: client)
+    return SearchView(viewModel: viewModel, focusTrigger: .constant(false))
+        .environmentObject(PlayerService())
+        .environmentObject(FavoritesManager.shared)
+        .environmentObject(SongLikeStatusManager.shared)
+        .environmentObject(LibraryViewModel(client: client))
 }
+#endif
+#endif

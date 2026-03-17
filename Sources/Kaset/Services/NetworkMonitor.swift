@@ -1,6 +1,6 @@
+import Combine
 import Foundation
 import Network
-import Observation
 
 // MARK: - NetworkMonitor
 
@@ -8,22 +8,21 @@ import Observation
 /// Uses system callbacks for real-time updates (no polling needed).
 /// Note: NWPathMonitor requires DispatchQueue - no async/await API available from Apple.
 @MainActor
-@Observable
-final class NetworkMonitor {
+final class NetworkMonitor: ObservableObject {
     /// Shared singleton instance.
     static let shared = NetworkMonitor()
 
     /// Whether the network is currently available.
-    private(set) var isConnected: Bool = true
+    @Published private(set) var isConnected: Bool = true
 
     /// Whether the connection is expensive (cellular/hotspot).
-    private(set) var isExpensive: Bool = false
+    @Published private(set) var isExpensive: Bool = false
 
     /// Whether the connection is constrained (low data mode).
-    private(set) var isConstrained: Bool = false
+    @Published private(set) var isConstrained: Bool = false
 
     /// The current network interface type.
-    private(set) var interfaceType: InterfaceType = .unknown
+    @Published private(set) var interfaceType: InterfaceType = .unknown
 
     /// Human-readable description of the current connection status.
     var statusDescription: String {
@@ -41,7 +40,7 @@ final class NetworkMonitor {
     }
 
     /// Network interface types.
-    enum InterfaceType {
+    enum InterfaceType: Sendable {
         case wifi
         case cellular
         case wiredEthernet

@@ -3,10 +3,9 @@ import SwiftUI
 // MARK: - PlayerBar
 
 /// Player bar shown at the bottom of the content area, styled like Apple Music with Liquid Glass.
-@available(macOS 26.0, *)
 struct PlayerBar: View {
-    @Environment(PlayerService.self) private var playerService
-    @Environment(WebKitManager.self) private var webKitManager
+    @EnvironmentObject private var playerService: PlayerService
+    @EnvironmentObject private var webKitManager: WebKitManager
 
     /// Namespace for glass effect morphing and unioning.
     @Namespace private var playerNamespace
@@ -28,7 +27,7 @@ struct PlayerBar: View {
     @State private var lastProgressSecond: Int = -1
 
     var body: some View {
-        GlassEffectContainer(spacing: 0) {
+        VStack(spacing: 0) {
             HStack(spacing: 0) {
                 // Left section: Playback controls
                 self.playbackControls
@@ -46,11 +45,12 @@ struct PlayerBar: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 8)
             .frame(height: 52)
-            .glassEffect(.regular.interactive(), in: .capsule)
-            .glassEffectID("playerBar", in: self.playerNamespace)
+            .background(.regularMaterial)
+            .clipShape(self.playerService.showLyrics ? AnyShape(Rectangle()) : AnyShape(Capsule()))
         }
-        .padding(.horizontal, 16)
-        .padding(.bottom, 12)
+        .padding(.horizontal, self.playerService.showLyrics ? 0 : 16)
+        .padding(.bottom, self.playerService.showLyrics ? 0 : 12)
+
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.15)) {
                 self.isHovering = hovering
@@ -93,9 +93,16 @@ struct PlayerBar: View {
                 }
                 .keyboardShortcut(.downArrow, modifiers: .command)
                 .opacity(0)
+
+                // Command + M: Toggle mute
+                Button("") {
+                    Task { await self.playerService.toggleMute() }
+                }
+                .keyboardShortcut("m", modifiers: .command)
+                .opacity(0)
             }
         }
-        .onChange(of: self.playerService.progress) { _, newValue in
+        .onChange(of: self.playerService.progress) { newValue in
             // Sync local seek value when not actively seeking
             if !self.isSeeking, self.playerService.duration > 0 {
                 self.seekValue = newValue / self.playerService.duration
@@ -108,7 +115,7 @@ struct PlayerBar: View {
                 self.formattedRemaining = "-\(self.formatTime(self.playerService.duration - newValue))"
             }
         }
-        .onChange(of: self.playerService.volume) { _, newValue in
+        .onChange(of: self.playerService.volume) { newValue in
             // Sync local volume value when not actively adjusting
             if !self.isAdjustingVolume {
                 self.volumeValue = newValue
@@ -280,7 +287,6 @@ struct PlayerBar: View {
                 Image(systemName: "shuffle")
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(self.playerService.shuffleEnabled ? .red : .primary.opacity(0.85))
-                    .contentTransition(.symbolEffect(.replace))
             }
             .buttonStyle(.pressable)
             .accessibilityLabel("Shuffle")
@@ -310,10 +316,8 @@ struct PlayerBar: View {
                 Image(systemName: self.playerService.isPlaying ? "pause.fill" : "play.fill")
                     .font(.system(size: 22, weight: .medium))
                     .foregroundStyle(.primary)
-                    .contentTransition(.symbolEffect(.replace))
             }
             .buttonStyle(.pressable)
-            .glassEffectID("playPause", in: self.playerNamespace)
             .accessibilityLabel(self.playerService.isPlaying ? "Pause" : "Play")
 
             // Next
@@ -338,7 +342,6 @@ struct PlayerBar: View {
                 Image(systemName: self.repeatIcon)
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(self.playerService.repeatMode != .off ? .red : .primary.opacity(0.85))
-                    .contentTransition(.symbolEffect(.replace))
             }
             .buttonStyle(.pressable)
             .accessibilityLabel("Repeat")
@@ -381,7 +384,6 @@ struct PlayerBar: View {
                 Image(systemName: "airplayaudio")
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(self.playerService.isAirPlayConnected ? .red : .primary.opacity(0.85))
-                    .contentTransition(.symbolEffect(.replace))
             }
             .buttonStyle(.pressable)
             .accessibilityIdentifier(AccessibilityID.PlayerBar.airplayButton)
@@ -413,13 +415,9 @@ struct PlayerBar: View {
             }
             .frame(width: 80)
             .controlSize(.small)
-            .onChange(of: self.volumeValue) { oldValue, newValue in
+            .onChange(of: self.volumeValue) { newValue in
                 // Apply volume changes in real-time during dragging for immediate feedback
                 if self.isAdjustingVolume {
-                    // Haptic feedback at slider boundaries
-                    if (oldValue > 0 && newValue == 0) || (oldValue < 1 && newValue == 1) {
-                        HapticService.sliderBoundary()
-                    }
                     Task {
                         await self.playerService.setVolume(newValue)
                     }
@@ -431,7 +429,6 @@ struct PlayerBar: View {
     // MARK: - Action Buttons (Like/Dislike/Lyrics/Queue)
 
     private var actionButtons: some View {
-        @Bindable var player = self.playerService
 
         return HStack(spacing: 12) {
             // Dislike button
@@ -444,10 +441,8 @@ struct PlayerBar: View {
                     : "hand.thumbsdown")
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(self.playerService.currentTrackLikeStatus == .dislike ? .red : .primary.opacity(0.85))
-                    .contentTransition(.symbolEffect(.replace))
             }
             .buttonStyle(.pressable)
-            .symbolEffect(.bounce, value: self.playerService.currentTrackLikeStatus == .dislike)
             .accessibilityLabel("Dislike")
             .accessibilityValue(self.playerService.currentTrackLikeStatus == .dislike ? "Disliked" : "Not disliked")
             .disabled(self.playerService.currentTrack == nil)
@@ -462,10 +457,8 @@ struct PlayerBar: View {
                     : "hand.thumbsup")
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(self.playerService.currentTrackLikeStatus == .like ? .red : .primary.opacity(0.85))
-                    .contentTransition(.symbolEffect(.replace))
             }
             .buttonStyle(.pressable)
-            .symbolEffect(.bounce, value: self.playerService.currentTrackLikeStatus == .like)
             .accessibilityLabel("Like")
             .accessibilityValue(self.playerService.currentTrackLikeStatus == .like ? "Liked" : "Not liked")
             .disabled(self.playerService.currentTrack == nil)
@@ -474,7 +467,7 @@ struct PlayerBar: View {
             Button {
                 HapticService.toggle()
                 withAnimation(AppAnimation.standard) {
-                    player.showLyrics.toggle()
+                    self.playerService.showLyrics.toggle()
                 }
             } label: {
                 Image(systemName: "quote.bubble")
@@ -482,7 +475,6 @@ struct PlayerBar: View {
                     .foregroundStyle(self.playerService.showLyrics ? .red : .primary.opacity(0.85))
             }
             .buttonStyle(.pressable)
-            .glassEffectID("lyrics", in: self.playerNamespace)
             .accessibilityIdentifier(AccessibilityID.PlayerBar.lyricsButton)
             .accessibilityLabel("Lyrics")
             .accessibilityValue(self.playerService.showLyrics ? "Showing" : "Hidden")
@@ -491,7 +483,7 @@ struct PlayerBar: View {
             Button {
                 HapticService.toggle()
                 withAnimation(AppAnimation.standard) {
-                    player.showQueue.toggle()
+                    self.playerService.showQueue.toggle()
                 }
             } label: {
                 Image(systemName: "list.bullet")
@@ -499,12 +491,10 @@ struct PlayerBar: View {
                     .foregroundStyle(self.playerService.showQueue ? .red : .primary.opacity(0.85))
             }
             .buttonStyle(.pressable)
-            .glassEffectID("queue", in: self.playerNamespace)
             .accessibilityIdentifier(AccessibilityID.PlayerBar.queueButton)
             .accessibilityLabel("Queue")
             .accessibilityValue(self.playerService.showQueue ? "Showing" : "Hidden")
 
-            // Video button - only shown when track has video
             if self.playerService.currentTrackHasVideo {
                 Button {
                     HapticService.toggle()
@@ -512,16 +502,14 @@ struct PlayerBar: View {
                         "Video button clicked, toggling showVideo from \(self.playerService.showVideo)"
                     )
                     withAnimation(AppAnimation.standard) {
-                        player.showVideo.toggle()
+                        self.playerService.showVideo.toggle()
                     }
                 } label: {
                     Image(systemName: self.playerService.showVideo ? "tv.fill" : "tv")
                         .font(.system(size: 15, weight: .medium))
                         .foregroundStyle(self.playerService.showVideo ? .red : .primary.opacity(0.85))
-                        .contentTransition(.symbolEffect(.replace))
                 }
                 .buttonStyle(.pressable)
-                .glassEffectID("video", in: self.playerNamespace)
                 .keyboardShortcut("v", modifiers: [.command, .shift])
                 .accessibilityIdentifier(AccessibilityID.PlayerBar.videoButton)
                 .accessibilityLabel("Video")
@@ -542,12 +530,16 @@ struct PlayerBar: View {
     }
 }
 
-@available(macOS 26.0, *)
+
+#if false
+#if false
 #Preview {
     PlayerBar()
-        .environment(PlayerService())
-        .environment(WebKitManager.shared)
+        .environmentObject(PlayerService())
+        .environmentObject(WebKitManager.shared)
         .frame(width: 600)
         .padding()
         .background(Color(nsColor: .windowBackgroundColor))
 }
+#endif
+#endif

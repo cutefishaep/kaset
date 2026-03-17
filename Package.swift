@@ -1,4 +1,4 @@
-// swift-tools-version: 6.2
+// swift-tools-version: 5.8
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "Kaset",
     platforms: [
-        .macOS(.v26),
+        .macOS(.v13),
     ],
     products: [
         .executable(
@@ -30,18 +30,11 @@ let package = Package(
             ],
             resources: [
                 .process("Resources"),
-            ],
-            swiftSettings: [
-                .swiftLanguageMode(.v6),
-                .enableExperimentalFeature("StrictConcurrency"),
             ]
         ),
         // API Explorer CLI tool
         .executableTarget(
-            name: "APIExplorer",
-            swiftSettings: [
-                .swiftLanguageMode(.v6),
-            ]
+            name: "APIExplorer"
         ),
         // Unit tests
         .testTarget(
@@ -49,11 +42,7 @@ let package = Package(
             dependencies: ["Kaset"],
             resources: [
                 .process("Fixtures"),
-            ],
-            swiftSettings: [
-                .swiftLanguageMode(.v6),
             ]
         ),
-    ],
-    swiftLanguageModes: [.v6]
+    ]
 )

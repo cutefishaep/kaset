@@ -1,10 +1,10 @@
 import SwiftUI
 
 /// Moods & Genres view for browsing music by mood or genre.
-@available(macOS 26.0, *)
+
 struct MoodsAndGenresView: View {
-    @State var viewModel: MoodsAndGenresViewModel
-    @Environment(PlayerService.self) private var playerService
+    @ObservedObject var viewModel: MoodsAndGenresViewModel
+    @EnvironmentObject private var playerService: PlayerService
     @State private var navigationPath = NavigationPath()
     @State private var networkMonitor = NetworkMonitor.shared
 
@@ -35,9 +35,6 @@ struct MoodsAndGenresView: View {
             .navigationTitle("Moods & Genres")
             .navigationDestinations(client: self.viewModel.client)
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            PlayerBar()
-        }
         .onAppear {
             if self.viewModel.loadingState == .idle {
                 Task {
@@ -55,11 +52,19 @@ struct MoodsAndGenresView: View {
     private var contentView: some View {
         Group {
             if self.viewModel.sections.isEmpty {
-                ContentUnavailableView(
-                    "No Moods & Genres Available",
-                    systemImage: "guitars",
-                    description: Text("Content may not be available in your region.")
-                )
+                VStack(spacing: 20) {
+                    Image(systemName: "guitars")
+                        .font(.system(size: 64))
+                        .foregroundStyle(.secondary)
+                    Text("No Moods & Genres Available")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    Text("Content may not be available in your region.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 32) {
@@ -118,9 +123,13 @@ struct MoodsAndGenresView: View {
     }
 }
 
+#if false
+#if false
 #Preview {
     let authService = AuthService()
     let client = YTMusicClient(authService: authService, webKitManager: .shared)
-    MoodsAndGenresView(viewModel: MoodsAndGenresViewModel(client: client))
-        .environment(PlayerService())
+    return MoodsAndGenresView(viewModel: MoodsAndGenresViewModel(client: client))
+        .environmentObject(PlayerService())
 }
+#endif
+#endif

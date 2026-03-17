@@ -1,10 +1,10 @@
 import SwiftUI
 
 /// New Releases view displaying recently released music.
-@available(macOS 26.0, *)
+
 struct NewReleasesView: View {
-    @State var viewModel: NewReleasesViewModel
-    @Environment(PlayerService.self) private var playerService
+    @ObservedObject var viewModel: NewReleasesViewModel
+    @EnvironmentObject private var playerService: PlayerService
     @State private var navigationPath = NavigationPath()
     @State private var networkMonitor = NetworkMonitor.shared
 
@@ -34,9 +34,6 @@ struct NewReleasesView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationTitle("New Releases")
             .navigationDestinations(client: self.viewModel.client)
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            PlayerBar()
         }
         .onAppear {
             if self.viewModel.loadingState == .idle {
@@ -116,9 +113,13 @@ struct NewReleasesView: View {
     }
 }
 
+#if false
+#if false
 #Preview {
     let authService = AuthService()
     let client = YTMusicClient(authService: authService, webKitManager: .shared)
-    NewReleasesView(viewModel: NewReleasesViewModel(client: client))
-        .environment(PlayerService())
+    return NewReleasesView(viewModel: NewReleasesViewModel(client: client))
+        .environmentObject(PlayerService())
 }
+#endif
+#endif

@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 
 // MARK: - SongLikeStatusManager
@@ -5,13 +6,12 @@ import Foundation
 /// Manages like/dislike status for songs across the app.
 /// This service caches like statuses locally and syncs with the YouTube Music API.
 @MainActor
-@Observable
-final class SongLikeStatusManager {
+final class SongLikeStatusManager: ObservableObject {
     /// Shared singleton instance.
     static let shared = SongLikeStatusManager()
 
     /// Cache of video ID to like status.
-    private var statusCache: [String: LikeStatus] = [:]
+    @Published private var statusCache: [String: LikeStatus] = [:]
 
     /// Reference to the YTMusic client for API calls.
     private var client: (any YTMusicClientProtocol)?

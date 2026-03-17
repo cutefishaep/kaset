@@ -1,13 +1,13 @@
 import SwiftUI
 
 /// Detail view for an artist showing their songs and albums.
-@available(macOS 26.0, *)
+
 struct ArtistDetailView: View {
     let artist: Artist
-    @State var viewModel: ArtistDetailViewModel
-    @Environment(PlayerService.self) private var playerService
-    @Environment(FavoritesManager.self) private var favoritesManager
-    @Environment(SongLikeStatusManager.self) private var likeStatusManager
+    @ObservedObject var viewModel: ArtistDetailViewModel
+    @EnvironmentObject private var playerService: PlayerService
+    @EnvironmentObject private var favoritesManager: FavoritesManager
+    @EnvironmentObject private var likeStatusManager: SongLikeStatusManager
 
     var body: some View {
         Group {
@@ -30,12 +30,6 @@ struct ArtistDetailView: View {
         }
         .accentBackground(from: self.viewModel.artistDetail?.thumbnailURL?.highQualityThumbnailURL)
         .navigationTitle(self.artist.name)
-        .toolbarBackgroundVisibility(.hidden, for: .automatic)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            if case .error = self.viewModel.loadingState {} else {
-                PlayerBar()
-            }
-        }
         .task {
             if self.viewModel.loadingState == .idle {
                 await self.viewModel.load()
@@ -458,6 +452,8 @@ struct ArtistDetailView: View {
     }
 }
 
+#if false
+#if false
 #Preview {
     let artist = Artist(
         id: "test",
@@ -466,12 +462,16 @@ struct ArtistDetailView: View {
     )
     let authService = AuthService()
     let client = YTMusicClient(authService: authService, webKitManager: .shared)
-    ArtistDetailView(
+    return ArtistDetailView(
         artist: artist,
         viewModel: ArtistDetailViewModel(
             artist: artist,
             client: client
         )
     )
-    .environment(PlayerService())
+    .environmentObject(PlayerService())
+    .environmentObject(FavoritesManager.shared)
+    .environmentObject(SongLikeStatusManager.shared)
 }
+#endif
+#endif

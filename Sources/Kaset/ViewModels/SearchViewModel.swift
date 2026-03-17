@@ -1,16 +1,15 @@
+import Combine
 import Foundation
-import Observation
 import os
 
 /// View model for the Search view.
 @MainActor
-@Observable
-final class SearchViewModel {
+final class SearchViewModel: ObservableObject {
     /// Current loading state.
-    private(set) var loadingState: LoadingState = .idle
+    @Published private(set) var loadingState: LoadingState = .idle
 
     /// Current search query.
-    var query: String = "" {
+    @Published var query: String = "" {
         didSet {
             self.searchTask?.cancel()
             self.suggestionsTask?.cancel()
@@ -30,7 +29,7 @@ final class SearchViewModel {
     }
 
     /// Search results.
-    private(set) var results: SearchResponse = .empty
+    @Published private(set) var results: SearchResponse = .empty
 
     /// The query that produced the current results.
     private var lastSearchedQuery: String?
@@ -39,7 +38,7 @@ final class SearchViewModel {
     private var lastSearchedFilter: SearchFilter?
 
     /// Search suggestions for autocomplete.
-    private(set) var suggestions: [SearchSuggestion] = []
+    @Published private(set) var suggestions: [SearchSuggestion] = []
 
     /// Whether suggestions should be shown.
     var showSuggestions: Bool {
@@ -47,7 +46,7 @@ final class SearchViewModel {
     }
 
     /// Filter for result types.
-    var selectedFilter: SearchFilter = .all {
+    @Published var selectedFilter: SearchFilter = .all {
         didSet {
             if oldValue != self.selectedFilter, !self.query.isEmpty, self.lastSearchedQuery != nil {
                 // Filter changed - perform a new filtered search
@@ -64,7 +63,7 @@ final class SearchViewModel {
     }
 
     /// Available filters.
-    enum SearchFilter: String, CaseIterable, Identifiable {
+    enum SearchFilter: String, CaseIterable, Identifiable, Sendable {
         case all = "All"
         case songs = "Songs"
         case albums = "Albums"
@@ -100,9 +99,9 @@ final class SearchViewModel {
     private let logger = DiagnosticsLogger.api
     // swiftformat:disable modifierOrder
     /// Tasks for search operations, cancelled in deinit.
-    /// nonisolated(unsafe) required for deinit access; Swift 6.2 warning is expected.
-    nonisolated(unsafe) private var searchTask: Task<Void, Never>?
-    nonisolated(unsafe) private var suggestionsTask: Task<Void, Never>?
+    /// required for deinit access; Swift 6.2 warning is expected.
+    private var searchTask: Task<Void, Never>?
+    private var suggestionsTask: Task<Void, Never>?
     // swiftformat:enable modifierOrder
 
     init(client: any YTMusicClientProtocol) {

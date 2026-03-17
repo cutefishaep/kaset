@@ -2,10 +2,10 @@ import SwiftUI
 
 // MARK: - QueueSidePanelView
 
-@available(macOS 26.0, *)
+
 struct QueueSidePanelView: View {
-    @Environment(PlayerService.self) private var playerService
-    @Environment(FavoritesManager.self) private var favoritesManager
+    @EnvironmentObject private var playerService: PlayerService
+    @EnvironmentObject private var favoritesManager: FavoritesManager
 
     var body: some View {
         // Use regular material: GlassEffectContainer breaks NSTableView drag-and-drop
@@ -33,9 +33,7 @@ struct QueueSidePanelView: View {
                         self.playerService.reorderQueue(from: IndexSet(integer: source), to: destination)
                     },
                     onRemove: { videoId in
-                        Task {
-                            await self.playerService.removeFromQueue(videoIds: Set([videoId]))
-                        }
+                        self.playerService.removeFromQueue(videoIds: Set([videoId]))
                     },
                     onStartRadio: { song in
                         Task {
@@ -80,7 +78,7 @@ struct QueueSidePanelView: View {
 
 // MARK: - QueueListControllerRepresentable
 
-@available(macOS 26.0, *)
+
 struct QueueListControllerRepresentable: NSViewControllerRepresentable {
     let queue: [Song]
     let currentIndex: Int
@@ -137,6 +135,7 @@ struct QueueListControllerRepresentable: NSViewControllerRepresentable {
 
     // MARK: - View Controller
 
+    @MainActor
     class QueueListViewController: NSViewController {
         var tableView: DraggableTableView?
         weak var coordinator: Coordinator?
@@ -190,6 +189,7 @@ struct QueueListControllerRepresentable: NSViewControllerRepresentable {
 
     // MARK: - Coordinator
 
+    @MainActor
     class Coordinator: NSObject, NSTableViewDelegate, NSTableViewDataSource {
         var queue: [Song]
         var currentIndex: Int
@@ -320,7 +320,7 @@ struct QueueListControllerRepresentable: NSViewControllerRepresentable {
             guard row >= 0, let song = queue[safe: row] else { return nil }
             let menu = NSMenu()
             let manager = self.favoritesManager
-            let isPinned = MainActor.assumeIsolated { manager.isPinned(song: song) }
+            let isPinned = manager.isPinned(song: song)
 
             let favoritesItem = NSMenuItem(
                 title: isPinned ? "Remove from Favorites" : "Add to Favorites",
@@ -365,7 +365,7 @@ struct QueueListControllerRepresentable: NSViewControllerRepresentable {
         @objc private func contextMenuFavorites(_ sender: NSMenuItem) {
             guard let song = sender.representedObject as? Song else { return }
             let manager = self.favoritesManager
-            MainActor.assumeIsolated { manager.toggle(song: song) }
+            manager.toggle(song: song)
         }
 
         @objc private func contextMenuStartRadio(_ sender: NSMenuItem) {
@@ -375,9 +375,7 @@ struct QueueListControllerRepresentable: NSViewControllerRepresentable {
 
         @objc private func contextMenuShare(_ sender: NSMenuItem) {
             guard let song = sender.representedObject as? Song, let url = song.shareURL else { return }
-            MainActor.assumeIsolated {
-                ShareContextMenu.showSharePicker(for: url)
-            }
+            ShareContextMenu.showSharePicker(for: url)
         }
 
         @objc private func contextMenuRemove(_ sender: NSMenuItem) {
@@ -389,7 +387,8 @@ struct QueueListControllerRepresentable: NSViewControllerRepresentable {
 
 // MARK: - DraggableTableView
 
-@available(macOS 26.0, *)
+
+@MainActor
 class DraggableTableView: NSTableView {
     weak var coordinator: QueueListControllerRepresentable.Coordinator?
 
@@ -575,9 +574,9 @@ class DraggableTableView: NSTableView {
 
 // MARK: - QueueSidePanelHeader
 
-@available(macOS 26.0, *)
+
 private struct QueueSidePanelHeader: View {
-    @Environment(PlayerService.self) private var playerService
+    @EnvironmentObject private var playerService: PlayerService
 
     var body: some View {
         HStack {
@@ -609,9 +608,10 @@ private struct QueueSidePanelHeader: View {
 
 // MARK: - QueueFooterActions
 
-@available(macOS 26.0, *)
+
+@MainActor
 private struct QueueFooterActions: View {
-    @Environment(PlayerService.self) private var playerService
+    @EnvironmentObject private var playerService: PlayerService
 
     var body: some View {
         HStack(spacing: 12) {
@@ -662,11 +662,13 @@ private struct QueueFooterActions: View {
 
 // MARK: - Preview
 
-@available(macOS 26.0, *)
+
+#if false
 #Preview("Queue Side Panel") {
     let playerService = PlayerService()
-    QueueSidePanelView()
-        .environment(playerService)
-        .environment(FavoritesManager.shared)
+    return QueueSidePanelView()
+        .environmentObject(playerService)
+        .environmentObject(FavoritesManager.shared)
         .frame(height: 600)
 }
+#endif

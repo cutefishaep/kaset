@@ -1,25 +1,24 @@
+import Combine
 import Foundation
-import Observation
 import os
 
 /// View model for the ArtistDetailView.
 @MainActor
-@Observable
-final class ArtistDetailViewModel {
+final class ArtistDetailViewModel: ObservableObject {
     /// Current loading state.
-    private(set) var loadingState: LoadingState = .idle
+    @Published private(set) var loadingState: LoadingState = .idle
 
     /// The loaded artist detail.
-    private(set) var artistDetail: ArtistDetail?
+    @Published private(set) var artistDetail: ArtistDetail?
 
     /// Whether a subscription operation is in progress.
-    private(set) var isSubscribing: Bool = false
+    @Published private(set) var isSubscribing: Bool = false
 
     /// Error message from subscription toggle (nil if no error).
-    private(set) var subscriptionError: String?
+    @Published private(set) var subscriptionError: String?
 
     /// Whether to show all songs instead of limited preview.
-    var showAllSongs: Bool = false
+    @Published var showAllSongs: Bool = false
 
     /// Number of songs to show in preview mode.
     static let previewSongCount = 5
@@ -134,7 +133,7 @@ final class ArtistDetailViewModel {
     }
 
     /// All songs for the artist (fetched on demand).
-    private(set) var allSongs: [Song]?
+    @Published private(set) var allSongs: [Song]?
 
     /// Fetches all songs for the artist if not already loaded.
     /// Returns all songs for queue playback.

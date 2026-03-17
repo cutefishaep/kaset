@@ -4,7 +4,7 @@ import SwiftUI
 
 /// A button style that provides hover and press feedback for card-like elements.
 /// Scales up on hover, scales down on press, and shows a subtle shadow.
-@available(macOS 26.0, *)
+
 struct InteractiveCardStyle: ButtonStyle {
     /// Whether to show shadow on hover.
     var showShadow: Bool = true
@@ -34,9 +34,11 @@ struct InteractiveCardStyle: ButtonStyle {
             .onHover { hovering in
                 self.isHovering = hovering
             }
-            .onChange(of: configuration.isPressed) { _, isPressed in
+            .onChange(of: configuration.isPressed) { isPressed in
                 if isPressed, let feedback = hapticFeedback {
-                    HapticService.perform(feedback)
+                    Task { @MainActor in
+                        HapticService.perform(feedback)
+                    }
                 }
             }
     }
@@ -45,7 +47,7 @@ struct InteractiveCardStyle: ButtonStyle {
 // MARK: - InteractiveRowStyle
 
 /// A button style for list rows with hover background highlight.
-@available(macOS 26.0, *)
+
 struct InteractiveRowStyle: ButtonStyle {
     /// Corner radius for the hover background.
     var cornerRadius: CGFloat = 8
@@ -70,9 +72,11 @@ struct InteractiveRowStyle: ButtonStyle {
             .onHover { hovering in
                 self.isHovering = hovering
             }
-            .onChange(of: configuration.isPressed) { _, isPressed in
+            .onChange(of: configuration.isPressed) { isPressed in
                 if isPressed, let feedback = hapticFeedback {
-                    HapticService.perform(feedback)
+                    Task { @MainActor in
+                        HapticService.perform(feedback)
+                    }
                 }
             }
     }
@@ -81,7 +85,7 @@ struct InteractiveRowStyle: ButtonStyle {
 // MARK: - PressableButtonStyle
 
 /// A button style that provides subtle press feedback for icon buttons.
-@available(macOS 26.0, *)
+
 struct PressableButtonStyle: ButtonStyle {
     /// Scale factor when pressed.
     var pressScale: CGFloat = 0.9
@@ -94,9 +98,11 @@ struct PressableButtonStyle: ButtonStyle {
             .scaleEffect(configuration.isPressed ? self.pressScale : 1.0)
             .opacity(configuration.isPressed ? 0.7 : 1.0)
             .animation(AppAnimation.quick, value: configuration.isPressed)
-            .onChange(of: configuration.isPressed) { _, isPressed in
+            .onChange(of: configuration.isPressed) { isPressed in
                 if isPressed, let feedback = hapticFeedback {
-                    HapticService.perform(feedback)
+                    Task { @MainActor in
+                        HapticService.perform(feedback)
+                    }
                 }
             }
     }
@@ -105,7 +111,7 @@ struct PressableButtonStyle: ButtonStyle {
 // MARK: - ChipButtonStyle
 
 /// A button style for filter chips with scale and background animation.
-@available(macOS 26.0, *)
+
 struct ChipButtonStyle: ButtonStyle {
     var isSelected: Bool
 
@@ -124,7 +130,7 @@ struct ChipButtonStyle: ButtonStyle {
 
 // MARK: - Button Style Extensions
 
-@available(macOS 26.0, *)
+
 extension ButtonStyle where Self == InteractiveCardStyle {
     /// Interactive card style with hover scale and shadow effects.
     static var interactiveCard: InteractiveCardStyle {
@@ -147,7 +153,7 @@ extension ButtonStyle where Self == InteractiveCardStyle {
     }
 }
 
-@available(macOS 26.0, *)
+
 extension ButtonStyle where Self == InteractiveRowStyle {
     /// Interactive row style with hover background.
     static var interactiveRow: InteractiveRowStyle {
@@ -163,7 +169,7 @@ extension ButtonStyle where Self == InteractiveRowStyle {
     }
 }
 
-@available(macOS 26.0, *)
+
 extension ButtonStyle where Self == PressableButtonStyle {
     /// Pressable button style with scale feedback.
     static var pressable: PressableButtonStyle {
@@ -176,7 +182,7 @@ extension ButtonStyle where Self == PressableButtonStyle {
     }
 }
 
-@available(macOS 26.0, *)
+
 extension ButtonStyle where Self == ChipButtonStyle {
     /// Chip button style for filter chips.
     static func chip(isSelected: Bool) -> ChipButtonStyle {
@@ -186,7 +192,8 @@ extension ButtonStyle where Self == ChipButtonStyle {
 
 // MARK: - Preview
 
-@available(macOS 26.0, *)
+
+#if false
 #Preview {
     VStack(spacing: 20) {
         // Card style preview
@@ -231,3 +238,4 @@ extension ButtonStyle where Self == ChipButtonStyle {
     }
     .padding()
 }
+#endif

@@ -1,19 +1,18 @@
+import Combine
 import Foundation
-import Observation
 import os
 
 /// View model for the PlaylistDetailView.
 @MainActor
-@Observable
-final class PlaylistDetailViewModel {
+final class PlaylistDetailViewModel: ObservableObject {
     /// Current loading state.
-    private(set) var loadingState: LoadingState = .idle
+    @Published private(set) var loadingState: LoadingState = .idle
 
     /// The loaded playlist detail.
-    private(set) var playlistDetail: PlaylistDetail?
+    @Published private(set) var playlistDetail: PlaylistDetail?
 
     /// Whether more tracks are available to load.
-    private(set) var hasMore: Bool = false
+    @Published private(set) var hasMore: Bool = false
 
     private let playlist: Playlist
     /// The API client (exposed for add to library action).

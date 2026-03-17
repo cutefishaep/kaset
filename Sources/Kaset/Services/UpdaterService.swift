@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import Sparkle
 
@@ -10,17 +11,16 @@ import Sparkle
 ///
 /// Usage:
 /// ```swift
-/// @State private var updaterService = UpdaterService()
+/// @StateObject private var updaterService = UpdaterService()
 ///
 /// Button("Check for Updates") {
 ///     updaterService.checkForUpdates()
 /// }
 /// .disabled(!updaterService.canCheckForUpdates)
 /// ```
-@available(macOS 26.0, *)
+
 @MainActor
-@Observable
-final class UpdaterService {
+final class UpdaterService: ObservableObject {
     /// The Sparkle updater controller that manages the update lifecycle.
     private let updaterController: SPUStandardUpdaterController
 

@@ -248,6 +248,8 @@ extension SingletonPlayerWebView {
             const video = document.querySelector('video');
             if (!video) {
                 console.log('[Kaset] No video element found');
+                const blackout = document.getElementById('kaset-blackout');
+                if (blackout) blackout.remove();
                 return { success: false, error: 'No video element' };
             }
 

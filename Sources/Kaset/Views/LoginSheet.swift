@@ -1,10 +1,10 @@
 import SwiftUI
 
 /// Login sheet presented when authentication is required.
-@available(macOS 26.0, *)
+
 struct LoginSheet: View {
-    @Environment(AuthService.self) private var authService
-    @Environment(WebKitManager.self) private var webKitManager
+    @EnvironmentObject private var authService: AuthService
+    @EnvironmentObject private var webKitManager: WebKitManager
     @Environment(\.dismiss) private var dismiss
 
     @State private var isCheckingLogin = false
@@ -23,7 +23,7 @@ struct LoginSheet: View {
             })
         }
         .frame(width: 500, height: 650)
-        .onChange(of: self.webKitManager.cookiesDidChange) { _, _ in
+        .onChange(of: self.webKitManager.cookiesDidChange) { _ in
             self.checkForSuccessfulLogin()
         }
         .onAppear {
@@ -104,8 +104,12 @@ struct LoginSheet: View {
     }
 }
 
+#if false
+#if false
 #Preview {
-    LoginSheet()
-        .environment(AuthService())
-        .environment(WebKitManager.shared)
+    return LoginSheet()
+        .environmentObject(AuthService())
+        .environmentObject(WebKitManager.shared)
 }
+#endif
+#endif

@@ -1,0 +1,162 @@
+Building for production...
+[0/8] Copying Kaset.sdef
+[0/8] Copying icon.json
+[0/8] Copying kaset.icns
+[0/8] Copying Image Layer.png
+[4/8] Copying Assets.xcassets
+[5/8] Copying Sparkle.framework
+remark: Incremental compilation has been disabled: it is not compatible with whole module optimization
+remark: Incremental compilation has been disabled: it is not compatible with whole module optimization
+[7/10] Compiling APIExplorer main.swift
+[7/10] Linking api-explorer
+[9/10] Compiling Kaset AppDelegate.swift
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Services/Scripting/ScriptCommands.swift:265:45: warning: left side of nil coalescing operator '??' has non-optional type 'String?', so the right side is never used
+                "album": track.album?.title ?? "",
+                         ~~~~~~~~~~~~~~~~~~ ^~~~~
+                                            
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Services/Scripting/ScriptCommands.swift:266:44: warning: left side of nil coalescing operator '??' has non-optional type 'Any', so the right side is never used
+                "duration": track.duration ?? 0,
+                            ~~~~~~~~~~~~~~ ^~~~
+                                           
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Services/Scripting/ScriptCommands.swift:265:26: warning: expression implicitly coerced from 'String?' to 'Any'
+                "album": track.album?.title ?? "",
+                         ^~~~~~~~~~~~~~~~~~~~~~~~
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Services/Scripting/ScriptCommands.swift:265:45: note: provide a default value to avoid this warning
+                "album": track.album?.title ?? "",
+                         ~~~~~~~~~~~~~~~~~~~^~~~~
+                                                  ?? <#default value#>
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Services/Scripting/ScriptCommands.swift:265:45: note: force-unwrap the value to avoid this warning
+                "album": track.album?.title ?? "",
+                         ~~~~~~~~~~~~~~~~~~~^~~~~
+                                                 !
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Services/Scripting/ScriptCommands.swift:265:45: note: explicitly cast to 'Any' with 'as Any' to silence this warning
+                "album": track.album?.title ?? "",
+                         ~~~~~~~~~~~~~~~~~~~^~~~~
+                                                  as Any
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Services/Scripting/ScriptCommands.swift:266:29: warning: expression implicitly coerced from 'TimeInterval?' (aka 'Optional<Double>') to 'Any'
+                "duration": track.duration ?? 0,
+                            ^~~~~~~~~~~~~~
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Services/Scripting/ScriptCommands.swift:266:35: note: provide a default value to avoid this warning
+                "duration": track.duration ?? 0,
+                            ~~~~~~^~~~~~~~
+                                           ?? <#default value#>
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Services/Scripting/ScriptCommands.swift:266:35: note: force-unwrap the value to avoid this warning
+                "duration": track.duration ?? 0,
+                            ~~~~~~^~~~~~~~
+                                          !
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Services/Scripting/ScriptCommands.swift:266:35: note: explicitly cast to 'Any' with 'as Any' to silence this warning
+                "duration": track.duration ?? 0,
+                            ~~~~~~^~~~~~~~
+                                           as Any
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Services/Scripting/ScriptCommands.swift:268:31: warning: expression implicitly coerced from 'String?' to 'Any'
+                "artworkURL": track.thumbnailURL?.absoluteString ?? "",
+                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Services/Scripting/ScriptCommands.swift:268:66: note: provide a default value to avoid this warning
+                "artworkURL": track.thumbnailURL?.absoluteString ?? "",
+                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+                                                                       ?? <#default value#>
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Services/Scripting/ScriptCommands.swift:268:66: note: force-unwrap the value to avoid this warning
+                "artworkURL": track.thumbnailURL?.absoluteString ?? "",
+                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+                                                                      !
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Services/Scripting/ScriptCommands.swift:268:66: note: explicitly cast to 'Any' with 'as Any' to silence this warning
+                "artworkURL": track.thumbnailURL?.absoluteString ?? "",
+                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+                                                                       as Any
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Utilities/ImageCache.swift:18:17: warning: conformance of 'NSImage' to 'Sendable' is unavailable
+    private var inFlight: [URL: Task<NSImage?, Never>] = [:]
+                ^
+AppKit.NSImage:2:11: note: conformance of 'NSImage' to 'Sendable' has been explicitly marked unavailable here
+extension NSImage : @unchecked Sendable {
+          ^
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Utilities/ImageCache.swift:79:35: warning: conformance of 'NSImage' to 'Sendable' is unavailable
+            return await existing.value
+                                  ^
+AppKit.NSImage:2:11: note: conformance of 'NSImage' to 'Sendable' has been explicitly marked unavailable here
+extension NSImage : @unchecked Sendable {
+          ^
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Utilities/ImageCache.swift:83:20: warning: conformance of 'NSImage' to 'Sendable' is unavailable
+        let task = Task<NSImage?, Never> {
+                   ^
+AppKit.NSImage:2:11: note: conformance of 'NSImage' to 'Sendable' has been explicitly marked unavailable here
+extension NSImage : @unchecked Sendable {
+          ^
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Utilities/ImageCache.swift:83:40: warning: conformance of 'NSImage' to 'Sendable' is unavailable
+        let task = Task<NSImage?, Never> {
+                                       ^
+AppKit.NSImage:2:11: note: conformance of 'NSImage' to 'Sendable' has been explicitly marked unavailable here
+extension NSImage : @unchecked Sendable {
+          ^
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Utilities/ImageCache.swift:83:13: warning: conformance of 'NSImage' to 'Sendable' is unavailable
+        let task = Task<NSImage?, Never> {
+            ^
+AppKit.NSImage:2:11: note: conformance of 'NSImage' to 'Sendable' has been explicitly marked unavailable here
+extension NSImage : @unchecked Sendable {
+          ^
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Utilities/ImageCache.swift:97:33: warning: conformance of 'NSImage' to 'Sendable' is unavailable
+        let result = await task.value
+                                ^
+AppKit.NSImage:2:11: note: conformance of 'NSImage' to 'Sendable' has been explicitly marked unavailable here
+extension NSImage : @unchecked Sendable {
+          ^
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Utilities/ImageCache.swift:79:35: warning: non-sendable type 'NSImage?' in asynchronous access from actor-isolated context to non-isolated property 'value' cannot cross actor boundary
+            return await existing.value
+                                  ^
+Swift.Optional:1:21: note: generic enum 'Optional' does not conform to the 'Sendable' protocol
+@frozen public enum Optional<Wrapped> : ExpressibleByNilLiteral {
+                    ^
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Utilities/ImageCache.swift:97:33: warning: non-sendable type 'NSImage?' in asynchronous access from actor-isolated context to non-isolated property 'value' cannot cross actor boundary
+        let result = await task.value
+                                ^
+Swift.Optional:1:21: note: generic enum 'Optional' does not conform to the 'Sendable' protocol
+@frozen public enum Optional<Wrapped> : ExpressibleByNilLiteral {
+                    ^
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Utilities/ImageCache.swift:130:36: warning: non-sendable type 'NSImage?' returned by implicitly asynchronous call to actor-isolated function cannot cross actor boundary
+                    _ = await self.image(for: url, targetSize: targetSize)
+                                   ^
+Swift.Optional:1:21: note: generic enum 'Optional' does not conform to the 'Sendable' protocol
+@frozen public enum Optional<Wrapped> : ExpressibleByNilLiteral {
+                    ^
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Views/CachedAsyncImage.swift:40:55: warning: non-sendable type 'NSImage?' returned by implicitly asynchronous call to actor-isolated function cannot cross actor boundary
+            let loadedImage = await ImageCache.shared.image(for: url, targetSize: self.targetSize)
+                                                      ^
+Swift.Optional:1:21: note: generic enum 'Optional' does not conform to the 'Sendable' protocol
+@frozen public enum Optional<Wrapped> : ExpressibleByNilLiteral {
+                    ^
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Views/MiniPlayerWebView.swift:469:29: warning: consider using asynchronous alternative function
+                    webView.evaluateJavaScript(applyVolumeScript) { result, error in
+                            ^
+<unknown>:0: note: 'evaluateJavaScript' declared here
+/Users/wahyuseptiaji/Documents/PROJECT/Muscet/Sources/Kaset/Views/QueueTableCellView.swift:170:53: warning: non-sendable type 'NSImage?' returned by implicitly asynchronous call to actor-isolated function cannot cross actor boundary
+                let image = await ImageCache.shared.image(for: url, targetSize: CGSize(width: 40, height: 40))
+                                                    ^
+Swift.Optional:1:21: note: generic enum 'Optional' does not conform to the 'Sendable' protocol
+@frozen public enum Optional<Wrapped> : ExpressibleByNilLiteral {
+                    ^
+[9/10] Linking Kaset
+Build complete! (201.85s)
+🔨 Building Kaset (release) for x86_64...
+  → Building for x86_64...
+[0/1] Planning build
+Building for production...
+Build complete! (3.10s)
+📦 Creating app bundle...
+📜 Copying AppleScript definition...
+🎨 Copying app icon...
+🎨 Compiling asset catalog...
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>com.apple.actool.compilation-results</key>
+	<dict>
+		<key>output-files</key>
+		<array>
+			<string>/Users/wahyuseptiaji/Documents/PROJECT/Muscet/.build/app/Kaset.app/Contents/Resources/Assets.car</string>
+		</array>
+	</dict>
+</dict>
+</plist>
+✨ Embedding Sparkle.framework...
+  → Copying resource bundle: Kaset_Kaset.bundle
+🔏 Signing app...

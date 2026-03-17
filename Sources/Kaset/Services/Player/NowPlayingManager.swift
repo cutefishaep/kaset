@@ -1,15 +1,14 @@
 import AppKit
+import Combine
 import Foundation
 import MediaPlayer
-import Observation
 import os
 
 /// Manages remote command center integration for media key support.
 /// Note: Now Playing info display is handled natively by WKWebView's media session.
 /// This class only sets up remote command handlers to route media keys to our PlayerService.
 @MainActor
-@Observable
-final class NowPlayingManager {
+final class NowPlayingManager: ObservableObject {
     /// Shared singleton instance. Must be configured with `configure(playerService:)` before use.
     static let shared = NowPlayingManager()
 

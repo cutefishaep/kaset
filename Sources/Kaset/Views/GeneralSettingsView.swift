@@ -1,18 +1,17 @@
 import SwiftUI
 
 /// Settings view for general app preferences.
-@available(macOS 26.0, *)
+
 struct GeneralSettingsView: View {
-    @Environment(AuthService.self) private var authService
-    @State private var settings = SettingsManager.shared
+    @EnvironmentObject private var authService: AuthService
+    @ObservedObject private var settings = SettingsManager.shared
     @State private var cacheSize: String = "Calculating..."
     @State private var isClearing = false
 
     /// The updater service for managing app updates.
-    var updaterService: UpdaterService
+    @ObservedObject var updaterService: UpdaterService
 
     var body: some View {
-        @Bindable var updater = self.updaterService
 
         Form {
             // MARK: - General Section
@@ -77,10 +76,51 @@ struct GeneralSettingsView: View {
                 Text("General")
             }
 
+            // MARK: - Advanced Section
+
+            Section {
+                // Ad Blocker
+                Toggle("Enable Ad Blocker", isOn: self.$settings.adBlockEnabled)
+                    .help("Block ads and bypass warnings on YouTube Music. Requires app restart to apply changes.")
+
+                // Lyrics Provider
+                Picker("Synced Lyrics Provider", selection: self.$settings.lyricsProvider) {
+                    ForEach(SettingsManager.LyricsProvider.allCases) { provider in
+                        Text(provider.rawValue).tag(provider)
+                    }
+                }
+                .help("Select the primary API to fetch time-synced lyrics from.")
+
+                // Lyrics Offset
+                HStack {
+                    Text("Lyrics Timing Offset")
+                    Spacer()
+                    Stepper(value: self.$settings.lyricsOffset, in: -10.0...10.0, step: 0.5) {
+                        Text(String(format: "%+.1f s", self.settings.lyricsOffset))
+                            .monospacedDigit()
+                    }
+                }
+                .help("Adjust the timing of the synced lyrics if they appear earlier or later than the audio.")
+
+                // Lyrics Font Size
+                HStack {
+                    Text("Lyrics Font Size")
+                    Spacer()
+                    Stepper(value: self.$settings.lyricsFontSize, in: 16.0...48.0, step: 2.0) {
+                        Text("\(Int(self.settings.lyricsFontSize)) pt")
+                            .monospacedDigit()
+                    }
+                }
+                .help("Adjust the base font size for the synced lyrics view.")
+                
+            } header: {
+                Text("Advanced Features")
+            }
+
             // MARK: - Updates Section
 
             Section {
-                Toggle("Automatically check for updates", isOn: $updater.automaticChecksEnabled)
+                Toggle("Automatically check for updates", isOn: self.$updaterService.automaticChecksEnabled)
 
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {

@@ -4,9 +4,9 @@ import SwiftUI
 
 /// Settings view for scrobbling services.
 /// Iterates all registered services from the coordinator, rendering a reusable row for each.
-@available(macOS 26.0, *)
+
 struct ScrobblingSettingsView: View {
-    @Environment(ScrobblingCoordinator.self) private var coordinator
+    @EnvironmentObject private var coordinator: ScrobblingCoordinator
 
     var body: some View {
         Form {
@@ -23,10 +23,10 @@ struct ScrobblingSettingsView: View {
 // MARK: - ScrobbleServiceRow
 
 /// A reusable settings row for any scrobbling service backend.
-@available(macOS 26.0, *)
+
 struct ScrobbleServiceRow: View {
     let service: any ScrobbleServiceProtocol
-    @State private var settings = SettingsManager.shared
+    @ObservedObject private var settings = SettingsManager.shared
     @State private var isAuthenticating = false
 
     var body: some View {

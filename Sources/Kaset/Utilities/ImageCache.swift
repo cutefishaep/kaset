@@ -54,7 +54,7 @@ actor ImageCache {
 
     // swiftformat:disable modifierOrder
     /// Dispatch source for memory pressure monitoring.
-    nonisolated(unsafe) private static var memoryPressureSource: DispatchSourceMemoryPressure?
+    private static var memoryPressureSource: DispatchSourceMemoryPressure?
     // swiftformat:enable modifierOrder
 
     /// Fetches an image from cache or network.

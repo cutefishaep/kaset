@@ -24,12 +24,12 @@ enum LibraryFilter: String, CaseIterable, Identifiable {
 // MARK: - LibraryView
 
 /// Library view displaying user's playlists and podcast shows.
-@available(macOS 26.0, *)
+
 struct LibraryView: View {
-    @State var viewModel: LibraryViewModel
-    @Environment(PlayerService.self) private var playerService
-    @Environment(FavoritesManager.self) private var favoritesManager
-    @Environment(LibraryViewModel.self) private var libraryViewModelEnv: LibraryViewModel?
+    @ObservedObject var viewModel: LibraryViewModel
+    @EnvironmentObject private var playerService: PlayerService
+    @EnvironmentObject private var favoritesManager: FavoritesManager
+    @EnvironmentObject private var libraryViewModelEnv: LibraryViewModel
     @State private var networkMonitor = NetworkMonitor.shared
 
     @State private var navigationPath = NavigationPath()
@@ -60,7 +60,7 @@ struct LibraryView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationTitle("Library")
-            .navigationDestination(for: Playlist.self) { playlist in
+            .navigationDestination(for: Playlist.self) { [libraryViewModelEnv] playlist in
                 PlaylistDetailView(
                     playlist: playlist,
                     viewModel: PlaylistDetailViewModel(
@@ -68,14 +68,12 @@ struct LibraryView: View {
                         client: self.viewModel.client
                     )
                 )
+                .environmentObject(libraryViewModelEnv)
             }
             .navigationDestination(for: PodcastShow.self) { [libraryViewModelEnv] show in
                 PodcastShowView(show: show, client: self.viewModel.client)
-                    .environment(libraryViewModelEnv)
+                    .environmentObject(libraryViewModelEnv)
             }
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            PlayerBar()
         }
         .task {
             if self.viewModel.loadingState == .idle {
@@ -315,10 +313,16 @@ enum LibraryItem: Identifiable {
     }
 }
 
+#if false
+#if false
 #Preview {
     let authService = AuthService()
     let client = YTMusicClient(authService: authService, webKitManager: .shared)
-    LibraryView(viewModel: LibraryViewModel(client: client))
-        .environment(PlayerService())
-        .environment(FavoritesManager.shared)
+    let viewModel = LibraryViewModel(client: client)
+    return LibraryView(viewModel: viewModel)
+        .environmentObject(PlayerService())
+        .environmentObject(FavoritesManager.shared)
+        .environmentObject(viewModel)
 }
+#endif
+#endif

@@ -1,10 +1,10 @@
 import SwiftUI
 
 /// Explore view displaying new releases, charts, and moods & genres.
-@available(macOS 26.0, *)
+
 struct ExploreView: View {
-    @State var viewModel: ExploreViewModel
-    @Environment(PlayerService.self) private var playerService
+    @ObservedObject var viewModel: ExploreViewModel
+    @EnvironmentObject private var playerService: PlayerService
     @State private var navigationPath = NavigationPath()
     @State private var networkMonitor = NetworkMonitor.shared
 
@@ -34,9 +34,6 @@ struct ExploreView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationTitle("Explore")
             .navigationDestinations(client: self.viewModel.client)
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            PlayerBar()
         }
         .onAppear {
             if self.viewModel.loadingState == .idle {
@@ -117,9 +114,13 @@ struct ExploreView: View {
     }
 }
 
+#if false
+#if false
 #Preview {
     let authService = AuthService()
     let client = YTMusicClient(authService: authService, webKitManager: .shared)
-    ExploreView(viewModel: ExploreViewModel(client: client))
-        .environment(PlayerService())
+    return ExploreView(viewModel: ExploreViewModel(client: client))
+        .environmentObject(PlayerService())
 }
+#endif
+#endif

@@ -4,7 +4,7 @@ import SwiftUI
 
 /// A view modifier that conditionally shows content based on Apple Intelligence availability.
 /// Use `.requiresIntelligence()` on AI-powered buttons and controls.
-@available(macOS 26.0, *)
+
 struct RequiresIntelligenceModifier: ViewModifier {
     /// Whether to completely hide the view when unavailable (vs. just dimming it).
     let hideWhenUnavailable: Bool
@@ -19,7 +19,11 @@ struct RequiresIntelligenceModifier: ViewModifier {
     /// SwiftUI's Observation system automatically tracks this access
     /// and triggers re-renders when the underlying value changes.
     private var isAvailable: Bool {
+        #if canImport(FoundationModels)
         FoundationModelsService.shared.isAvailable
+        #else
+        false
+        #endif
     }
 
     func body(content: Content) -> some View {
@@ -50,7 +54,7 @@ struct RequiresIntelligenceModifier: ViewModifier {
 
 // MARK: - View Extension
 
-@available(macOS 26.0, *)
+
 extension View {
     /// Marks this view as requiring Apple Intelligence.
     /// When AI is unavailable, the view will be completely hidden by default.

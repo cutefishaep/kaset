@@ -1,15 +1,14 @@
+import Combine
 import Foundation
-import Observation
 
 /// View model for a moods/genres category detail view.
 @MainActor
-@Observable
-final class MoodCategoryViewModel {
+final class MoodCategoryViewModel: ObservableObject {
     /// Current loading state.
-    private(set) var loadingState: LoadingState = .idle
+    @Published private(set) var loadingState: LoadingState = .idle
 
     /// Sections of content for this category.
-    private(set) var sections: [HomeSection] = []
+    @Published private(set) var sections: [HomeSection] = []
 
     /// The category being displayed.
     let category: MoodCategory

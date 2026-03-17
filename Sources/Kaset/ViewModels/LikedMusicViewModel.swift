@@ -1,18 +1,17 @@
+import Combine
 import Foundation
-import Observation
 
 /// View model for the Liked Music view.
 @MainActor
-@Observable
-final class LikedMusicViewModel {
+final class LikedMusicViewModel: ObservableObject {
     /// Current loading state.
-    private(set) var loadingState: LoadingState = .idle
+    @Published private(set) var loadingState: LoadingState = .idle
 
     /// Liked songs.
-    private(set) var songs: [Song] = []
+    @Published private(set) var songs: [Song] = []
 
     /// Whether more songs are available to load.
-    private(set) var hasMore: Bool = false
+    @Published private(set) var hasMore: Bool = false
 
     /// The API client.
     let client: any YTMusicClientProtocol

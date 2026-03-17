@@ -3,7 +3,7 @@ import WebKit
 
 /// WebView for Google login.
 struct LoginWebView: NSViewRepresentable {
-    @Environment(WebKitManager.self) private var webKitManager
+    @EnvironmentObject private var webKitManager: WebKitManager
 
     /// Callback when navigation completes to YouTube Music.
     var onNavigationToYouTubeMusic: (() -> Void)?
@@ -50,8 +50,12 @@ struct LoginWebView: NSViewRepresentable {
     }
 }
 
+#if false
+#if false
 #Preview {
-    LoginWebView()
-        .environment(WebKitManager.shared)
+    return LoginWebView()
+        .environmentObject(WebKitManager.shared)
         .frame(width: 500, height: 600)
 }
+#endif
+#endif
