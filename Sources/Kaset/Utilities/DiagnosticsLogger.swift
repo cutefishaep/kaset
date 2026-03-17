@@ -47,7 +47,7 @@ enum DiagnosticsLogger {
 
     /// Logs a debug message only in DEBUG builds.
     @inline(__always)
-    static func debug(_ message: @autoclosure () -> String, logger: Logger) {
+    static func kasetDebug(_ message: @autoclosure () -> String, logger: Logger) {
         #if DEBUG
             logger.debug("\(message())")
         #endif
