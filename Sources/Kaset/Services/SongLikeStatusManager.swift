@@ -106,7 +106,7 @@ final class SongLikeStatusManager: ObservableObject {
             } else {
                 self.statusCache.removeValue(forKey: song.videoId)
             }
-            DiagnosticsLogger.api.debug("Rating cancelled for song \(song.videoId), rolled back")
+            DiagnosticsLogger.api.kasetDebug("Rating cancelled for song \(song.videoId), rolled back")
         } catch {
             // Revert on failure
             if let previous = previousStatus {

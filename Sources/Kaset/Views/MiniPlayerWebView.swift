@@ -318,7 +318,7 @@ final class SingletonPlayerWebView {
 
         let previousVideoId = self.currentVideoId
         guard videoId != previousVideoId else {
-            self.logger.debug("Video \(videoId) already loaded, skipping")
+            self.logger.kasetDebug("Video \(videoId) already loaded, skipping")
             return
         }
 
@@ -475,7 +475,7 @@ final class SingletonPlayerWebView {
                         if let error = error {
                             DiagnosticsLogger.player.error("Failed to apply volume via script: \(error.localizedDescription)")
                         } else if let resultString = result as? String {
-                            DiagnosticsLogger.player.debug("Volume apply result: \(resultString)")
+                            DiagnosticsLogger.player.kasetDebug("Volume apply result: \(resultString)")
                         }
                     }
                 }

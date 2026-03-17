@@ -103,7 +103,7 @@ final class YTMusicClient: YTMusicClientProtocol {
     /// Returns nil if no more sections are available.
     private func fetchContinuation(type: PaginatedContentType) async throws -> [HomeSection]? {
         guard let token = continuationTokens[type] else {
-            self.logger.debug("No \(type.displayName) continuation token available")
+            self.logger.kasetDebug("No \(type.displayName) continuation token available")
             return nil
         }
 
@@ -231,7 +231,7 @@ final class YTMusicClient: YTMusicClientProtocol {
     /// Fetches the next batch of podcasts sections via continuation.
     func getPodcastsContinuation() async throws -> [PodcastSection]? {
         guard let token = continuationTokens[.podcasts] else {
-            self.logger.debug("No podcasts continuation token available")
+            self.logger.kasetDebug("No podcasts continuation token available")
             return nil
         }
 
@@ -487,7 +487,7 @@ final class YTMusicClient: YTMusicClientProtocol {
     /// Returns nil if no more results are available.
     func getSearchContinuation() async throws -> SearchResponse? {
         guard let token = searchContinuationToken else {
-            self.logger.debug("No search continuation token available")
+            self.logger.kasetDebug("No search continuation token available")
             return nil
         }
 
@@ -527,7 +527,7 @@ final class YTMusicClient: YTMusicClientProtocol {
             return []
         }
 
-        self.logger.debug("Fetching search suggestions for: \(query)")
+        self.logger.kasetDebug("Fetching search suggestions for: \(query)")
 
         let body: [String: Any] = [
             "input": query,
@@ -536,7 +536,7 @@ final class YTMusicClient: YTMusicClientProtocol {
         // No caching for suggestions - they're ephemeral
         let data = try await request("music/get_search_suggestions", body: body)
         let suggestions = SearchSuggestionsParser.parse(data)
-        self.logger.debug("Found \(suggestions.count) suggestions")
+        self.logger.kasetDebug("Found \(suggestions.count) suggestions")
         return suggestions
     }
 
@@ -610,7 +610,7 @@ final class YTMusicClient: YTMusicClientProtocol {
     /// Returns nil if no more songs are available.
     func getLikedSongsContinuation() async throws -> LikedSongsResponse? {
         guard let token = likedSongsContinuationToken else {
-            self.logger.debug("No liked songs continuation token available")
+            self.logger.kasetDebug("No liked songs continuation token available")
             return nil
         }
 
@@ -712,7 +712,7 @@ final class YTMusicClient: YTMusicClientProtocol {
     /// Returns nil if no more tracks are available.
     func getPlaylistContinuation() async throws -> PlaylistContinuationResponse? {
         guard let token = playlistContinuationToken else {
-            self.logger.debug("No playlist continuation token available")
+            self.logger.kasetDebug("No playlist continuation token available")
             return nil
         }
 
@@ -744,7 +744,7 @@ final class YTMusicClient: YTMusicClientProtocol {
         let data = try await request("browse", body: body, ttl: APICache.TTL.artist)
 
         let topKeys = Array(data.keys)
-        self.logger.debug("Artist response top-level keys: \(topKeys)")
+        self.logger.kasetDebug("Artist response top-level keys: \(topKeys)")
 
         var detail = ArtistParser.parseArtistDetail(data, artistId: id)
 
@@ -790,7 +790,7 @@ final class YTMusicClient: YTMusicClientProtocol {
             } catch is CancellationError {
                 throw CancellationError()
             } catch {
-                self.logger.debug("Best-effort duration fetch failed: \(error.localizedDescription)")
+                self.logger.kasetDebug("Best-effort duration fetch failed: \(error.localizedDescription)")
             }
         }
 
@@ -835,7 +835,7 @@ final class YTMusicClient: YTMusicClientProtocol {
             }
         }
 
-        self.logger.debug("Fetched durations for \(durations.count)/\(videoIds.count) songs")
+        self.logger.kasetDebug("Fetched durations for \(durations.count)/\(videoIds.count) songs")
         return durations
     }
 
@@ -1178,7 +1178,7 @@ final class YTMusicClient: YTMusicClientProtocol {
             "target": ["playlistId": playlistId],
         ]
 
-        self.logger.debug("Calling like/removelike with playlistId=\(playlistId)")
+        self.logger.kasetDebug("Calling like/removelike with playlistId=\(playlistId)")
         _ = try await self.request("like/removelike", body: body)
         self.logger.info("Successfully unsubscribed from podcast \(showId)")
 
@@ -1227,7 +1227,7 @@ final class YTMusicClient: YTMusicClientProtocol {
         // Log available cookies for debugging auth issues
         let allCookies = await webKitManager.getAllCookies()
         let youtubeCookies = await webKitManager.getCookies(for: "youtube.com")
-        self.logger.debug("Building auth headers - total cookies: \(allCookies.count), youtube.com cookies: \(youtubeCookies.count)")
+        self.logger.kasetDebug("Building auth headers - total cookies: \(allCookies.count), youtube.com cookies: \(youtubeCookies.count)")
 
         guard let cookieHeader = await webKitManager.cookieHeader(for: "youtube.com") else {
             self.logger.error("No cookies found for youtube.com domain")
@@ -1270,9 +1270,9 @@ final class YTMusicClient: YTMusicClientProtocol {
         // Add brand account ID if one is selected
         if let brandId = self.brandIdProvider?() {
             userDict["onBehalfOfUser"] = brandId
-            self.logger.debug("Using brand account: \(brandId)")
+            self.logger.kasetDebug("Using brand account: \(brandId)")
         } else {
-            self.logger.debug("Using primary account (no brand ID)")
+            self.logger.kasetDebug("Using primary account (no brand ID)")
         }
 
         return [
@@ -1305,13 +1305,13 @@ final class YTMusicClient: YTMusicClientProtocol {
         // Brand ID must be in cache key to prevent returning cached data from other accounts
         let brandId = self.brandIdProvider?() ?? ""
         let cacheKey = APICache.stableCacheKey(endpoint: endpoint, body: fullBody, brandId: brandId)
-        self.logger.debug(
+        self.logger.kasetDebug(
             "Request \(endpoint): brandId=\(brandId.isEmpty ? "primary" : brandId), cacheKey=\(cacheKey)"
         )
 
         // Check cache first
         if ttl != nil, let cached = APICache.shared.get(key: cacheKey) {
-            self.logger.debug(
+            self.logger.kasetDebug(
                 "Cache hit for \(endpoint) (brandId=\(brandId.isEmpty ? "primary" : brandId))"
             )
             return cached
@@ -1354,11 +1354,11 @@ final class YTMusicClient: YTMusicClientProtocol {
            let user = context["user"] as? [String: Any]
         {
             let onBehalfOfUser = user["onBehalfOfUser"] as? String
-            self.logger.debug(
+            self.logger.kasetDebug(
                 "Making request to \(endpoint) (onBehalfOfUser=\(onBehalfOfUser ?? "primary"))"
             )
         } else {
-            self.logger.debug("Making request to \(endpoint) (missing context)")
+            self.logger.kasetDebug("Making request to \(endpoint) (missing context)")
         }
 
         // Perform network I/O off the main thread

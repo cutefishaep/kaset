@@ -55,13 +55,13 @@ final class HomeViewModel: ObservableObject {
             let sectionSummary = self.sections
                 .map { "\($0.title) (\($0.items.count))" }
                 .joined(separator: ", ")
-            self.logger.debug("Home sections: [\(sectionSummary)]")
+            self.logger.kasetDebug("Home sections: [\(sectionSummary)]")
 
             // Start background loading of additional sections
             self.startBackgroundLoading()
         } catch is CancellationError {
             // Task was cancelled (e.g., user navigated away) — reset to idle so it can retry
-            self.logger.debug("Home load cancelled")
+            self.logger.kasetDebug("Home load cancelled")
             self.loadingState = .idle
         } catch {
             self.logger.error("Failed to load home: \(error.localizedDescription)")
@@ -101,7 +101,7 @@ final class HomeViewModel: ObservableObject {
                     break
                 }
             } catch is CancellationError {
-                self.logger.debug("Background loading cancelled")
+                self.logger.kasetDebug("Background loading cancelled")
                 break
             } catch {
                 self.logger.warning("Background section load failed: \(error.localizedDescription)")

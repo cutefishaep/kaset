@@ -1,0 +1,70 @@
+name: Auto DMG Build
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**.swift"
+      - "Package.swift"
+      - "Sources/**"
+      - "Scripts/**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
+
+      - name: Get short SHA
+        id: slug
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Build app
+        env:
+          KASET_SIGNING: adhoc
+          ARCHES: "arm64 x86_64"
+        run: |
+          echo "MARKETING_VERSION=0.0.0-build.${{ steps.slug.outputs.sha_short }}" > version.env
+          echo "BUILD_NUMBER=${{ github.run_number }}" >> version.env
+          Scripts/build-app.sh release
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Create DMG
+        run: |
+          APP_PATH=".build/app/Kaset.app"
+          DMG_NAME="Kaset-${{ steps.slug.outputs.sha_short }}.dmg"
+
+          create-dmg \
+            --volname "Kaset" \
+            --window-pos 200 120 \
+            --window-size 660 400 \
+            --icon-size 100 \
+            --icon "Kaset.app" 180 190 \
+            --app-drop-link 480 190 \
+            --hide-extension "Kaset.app" \
+            --no-internet-enable \
+            "$DMG_NAME" \
+            "$APP_PATH"
+
+          echo "dmg_path=$DMG_NAME" >> $GITHUB_OUTPUT
+        id: create_dmg
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kaset-${{ steps.slug.outputs.sha_short }}-dmg
+          path: "*.dmg"
+          retention-days: 7

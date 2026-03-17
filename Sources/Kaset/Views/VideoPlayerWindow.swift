@@ -36,7 +36,7 @@ struct VideoWebViewContainer: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: VideoContainerView, context _: Context) {
-        DiagnosticsLogger.player.debug("VideoWebViewContainer.updateNSView called")
+        DiagnosticsLogger.player.kasetDebug("VideoWebViewContainer.updateNSView called")
         // Reparent the WebView into this container for video display
         SingletonPlayerWebView.shared.ensureInHierarchy(container: nsView)
     }

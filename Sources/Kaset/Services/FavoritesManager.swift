@@ -62,7 +62,7 @@ final class FavoritesManager: ObservableObject {
     func load() {
         do {
             guard FileManager.default.fileExists(atPath: self.fileURL.path) else {
-                DiagnosticsLogger.ui.debug("Favorites file does not exist, starting fresh")
+                DiagnosticsLogger.ui.kasetDebug("Favorites file does not exist, starting fresh")
                 return
             }
             let data = try Data(contentsOf: self.fileURL)
@@ -106,7 +106,7 @@ final class FavoritesManager: ObservableObject {
 
                 let data = try JSONEncoder().encode(itemsSnapshot)
                 try data.write(to: targetURL, options: .atomic)
-                DiagnosticsLogger.ui.debug("Saved \(itemsSnapshot.count) favorite items")
+                DiagnosticsLogger.ui.kasetDebug("Saved \(itemsSnapshot.count) favorite items")
             } catch {
                 DiagnosticsLogger.ui.error("Failed to save favorites: \(error.localizedDescription)")
             }
@@ -118,7 +118,7 @@ final class FavoritesManager: ObservableObject {
     /// Adds an item to Favorites if not already present.
     func add(_ item: FavoriteItem) {
         guard !self.isPinned(contentId: item.contentId) else {
-            DiagnosticsLogger.ui.debug("Item already in favorites: \(item.contentId)")
+            DiagnosticsLogger.ui.kasetDebug("Item already in favorites: \(item.contentId)")
             return
         }
         self.items.insert(item, at: 0) // New items go to the front
@@ -129,7 +129,7 @@ final class FavoritesManager: ObservableObject {
     /// Removes an item by content ID (videoId or browseId).
     func remove(contentId: String) {
         guard let index = items.firstIndex(where: { $0.contentId == contentId }) else {
-            DiagnosticsLogger.ui.debug("Item not in favorites: \(contentId)")
+            DiagnosticsLogger.ui.kasetDebug("Item not in favorites: \(contentId)")
             return
         }
         let removed = self.items.remove(at: index)
@@ -233,7 +233,7 @@ final class FavoritesManager: ObservableObject {
         guard let jsonString = UITestConfig.environmentValue(for: UITestConfig.mockFavoritesKey),
               let data = jsonString.data(using: .utf8)
         else {
-            DiagnosticsLogger.ui.debug("No mock favorites data provided")
+            DiagnosticsLogger.ui.kasetDebug("No mock favorites data provided")
             self.items = []
             return
         }

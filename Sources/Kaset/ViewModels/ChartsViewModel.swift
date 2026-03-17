@@ -57,7 +57,7 @@ final class ChartsViewModel: ObservableObject {
             self.startBackgroundLoading()
         } catch is CancellationError {
             // Task was cancelled (e.g., user navigated away) — reset to idle so it can retry
-            self.logger.debug("Charts load cancelled")
+            self.logger.kasetDebug("Charts load cancelled")
             self.loadingState = .idle
         } catch {
             self.logger.error("Failed to load charts: \(error.localizedDescription)")
@@ -97,7 +97,7 @@ final class ChartsViewModel: ObservableObject {
                     break
                 }
             } catch is CancellationError {
-                self.logger.debug("Background loading cancelled")
+                self.logger.kasetDebug("Background loading cancelled")
                 break
             } catch {
                 self.logger.warning("Background section load failed: \(error.localizedDescription)")

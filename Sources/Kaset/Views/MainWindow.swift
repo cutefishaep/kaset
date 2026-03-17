@@ -148,7 +148,7 @@ struct MainWindow: View {
             }
         }
         .onChange(of: self.playerService.showVideo) { showVideo in
-            DiagnosticsLogger.player.debug("showVideo onChange triggered: \(showVideo)")
+            DiagnosticsLogger.player.kasetDebug("showVideo onChange triggered: \(showVideo)")
             if showVideo {
                 VideoWindowController.shared.show(
                     playerService: self.playerService,

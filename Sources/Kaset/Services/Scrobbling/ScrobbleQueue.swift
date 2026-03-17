@@ -46,7 +46,7 @@ final class ScrobbleQueue {
     func enqueue(_ track: ScrobbleTrack) {
         self.items.append(track)
         self.saveToDisk()
-        self.logger.debug("Enqueued scrobble: \(track.title) by \(track.artist) (queue size: \(self.items.count))")
+        self.logger.kasetDebug("Enqueued scrobble: \(track.title) by \(track.artist) (queue size: \(self.items.count))")
     }
 
     /// Returns up to `limit` tracks from the front of the queue without removing them.
@@ -62,7 +62,7 @@ final class ScrobbleQueue {
         let removedCount = beforeCount - self.items.count
         if removedCount > 0 {
             self.saveToDisk()
-            self.logger.debug("Marked \(removedCount) scrobbles as completed (queue size: \(self.items.count))")
+            self.logger.kasetDebug("Marked \(removedCount) scrobbles as completed (queue size: \(self.items.count))")
         }
     }
 

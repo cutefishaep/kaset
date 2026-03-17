@@ -48,7 +48,7 @@ final class TopSongsViewModel: ObservableObject {
             let songCount = self.songs.count
             self.logger.info("Loaded \(songCount) artist songs")
         } catch is CancellationError {
-            self.logger.debug("Artist songs load cancelled")
+            self.logger.kasetDebug("Artist songs load cancelled")
             self.loadingState = .loaded // Keep showing what we have
         } catch {
             let errorMessage = error.localizedDescription

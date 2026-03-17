@@ -144,7 +144,7 @@ final class SearchViewModel: ObservableObject {
             }
         } catch {
             if !Task.isCancelled {
-                self.logger.debug("Failed to fetch suggestions: \(error.localizedDescription)")
+                self.logger.kasetDebug("Failed to fetch suggestions: \(error.localizedDescription)")
                 // Don't show error for suggestions - just silently fail
             }
         }
@@ -238,7 +238,7 @@ final class SearchViewModel: ObservableObject {
             // Check cancellation and query change before updating results
             // This handles the race condition where query changed during the request
             guard !Task.isCancelled, self.query == currentQuery else {
-                self.logger.debug("Search results discarded: query changed or task cancelled")
+                self.logger.kasetDebug("Search results discarded: query changed or task cancelled")
                 return
             }
 

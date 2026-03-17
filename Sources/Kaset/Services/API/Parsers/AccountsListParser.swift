@@ -22,7 +22,7 @@ enum AccountsListParser {
               let multiPageMenuRenderer = menu["multiPageMenuRenderer"] as? [String: Any],
               let sections = multiPageMenuRenderer["sections"] as? [[String: Any]]
         else {
-            self.logger.debug("AccountsListParser: Failed to navigate to sections. Top keys: \(json.keys.sorted())")
+            self.logger.kasetDebug("AccountsListParser: Failed to navigate to sections. Top keys: \(json.keys.sorted())")
             return AccountsListResponse(googleEmail: nil, accounts: [])
         }
 
@@ -56,7 +56,7 @@ enum AccountsListParser {
             }
         }
 
-        self.logger.debug("AccountsListParser: Parsed \(accounts.count) accounts")
+        self.logger.kasetDebug("AccountsListParser: Parsed \(accounts.count) accounts")
         return AccountsListResponse(googleEmail: googleEmail, accounts: accounts)
     }
 
@@ -92,7 +92,7 @@ enum AccountsListParser {
               let name = firstNameRun["text"] as? String,
               !name.isEmpty
         else {
-            self.logger.debug("AccountsListParser: Missing account name")
+            self.logger.kasetDebug("AccountsListParser: Missing account name")
             return nil
         }
 

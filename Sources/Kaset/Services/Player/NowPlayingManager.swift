@@ -21,7 +21,7 @@ final class NowPlayingManager: ObservableObject {
     /// Configures the singleton with a player service. Only configures once; subsequent calls are ignored.
     func configure(playerService: PlayerService) {
         guard !self.isConfigured else {
-            self.logger.debug("NowPlayingManager already configured, skipping")
+            self.logger.kasetDebug("NowPlayingManager already configured, skipping")
             return
         }
         self.isConfigured = true

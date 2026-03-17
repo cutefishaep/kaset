@@ -27,13 +27,13 @@ jobs:
   macos_unit_tests:
     name: macOS Unit Tests
     timeout-minutes: 20
-    runs-on: macos-26
+    runs-on: macos-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
+        uses: actions/checkout@v4
 
       - name: Select Xcode version
-        run: sudo xcode-select -s /Applications/Xcode_26.2.app/Contents/Developer
+        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
 
       - name: Show Swift version
         run: swift --version
@@ -47,13 +47,13 @@ jobs:
   macos_ui_tests:
     name: macOS UI Tests
     timeout-minutes: 30
-    runs-on: macos-26
+    runs-on: macos-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
+        uses: actions/checkout@v4
 
       - name: Select Xcode version
-        run: sudo xcode-select -s /Applications/Xcode_26.2.app/Contents/Developer
+        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
 
       - name: Show Xcode version
         run: xcodebuild -version

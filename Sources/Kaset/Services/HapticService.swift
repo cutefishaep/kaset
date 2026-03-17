@@ -58,11 +58,11 @@ enum HapticService {
     /// - Parameter type: The type of feedback to perform.
     static func perform(_ type: FeedbackType) {
         guard self.isEnabled else {
-            DiagnosticsLogger.haptic.debug("Haptic feedback disabled, skipping \(String(describing: type))")
+            DiagnosticsLogger.haptic.kasetDebug("Haptic feedback disabled, skipping \(String(describing: type))")
             return
         }
 
-        DiagnosticsLogger.haptic.debug("Performing haptic feedback: \(String(describing: type))")
+        DiagnosticsLogger.haptic.kasetDebug("Performing haptic feedback: \(String(describing: type))")
 
         NSHapticFeedbackManager.defaultPerformer.perform(
             type.pattern,

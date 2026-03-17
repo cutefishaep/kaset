@@ -32,7 +32,7 @@ enum RadioQueueParser {
               let playlistPanelRenderer = queueContent["playlistPanelRenderer"] as? [String: Any],
               let playlistContents = playlistPanelRenderer["contents"] as? [[String: Any]]
         else {
-            self.logger.debug("RadioQueueParser: Failed to parse radio queue structure. Top keys: \(data.keys.sorted())")
+            self.logger.kasetDebug("RadioQueueParser: Failed to parse radio queue structure. Top keys: \(data.keys.sorted())")
             return RadioQueueResult(songs: [], continuationToken: nil)
         }
 

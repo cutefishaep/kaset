@@ -102,7 +102,7 @@ enum KeychainCookieStorage {
         }
 
         if status == errSecSuccess {
-            self.logger.debug("Saved \(cookieCount) auth cookies to Keychain")
+            self.logger.kasetDebug("Saved \(cookieCount) auth cookies to Keychain")
         } else {
             self.logger.error("Failed to save cookies to Keychain: \(status)")
         }
@@ -533,7 +533,7 @@ final class WebKitManager: NSObject, ObservableObject, WebKitManagerProtocol {
     func getSAPISID() async -> String? {
         let cookies = await getCookies(for: "youtube.com")
         let allCookies = await getAllCookies()
-        self.logger.debug("Checking for SAPISID - total cookies: \(allCookies.count), youtube.com cookies: \(cookies.count)")
+        self.logger.kasetDebug("Checking for SAPISID - total cookies: \(allCookies.count), youtube.com cookies: \(cookies.count)")
 
         // Try secure cookie first, then fallback to non-secure
         let secureCookie = cookies.first { $0.name == Self.authCookieName }
@@ -547,20 +547,20 @@ final class WebKitManager: NSObject, ObservableObject, WebKitManagerProtocol {
                 formatter.timeStyle = .short
                 let expiresStr = formatter.string(from: expiresDate)
                 let isExpired = expiresDate < Date()
-                self.logger.debug("Found \(cookie.name) cookie, expires: \(expiresStr), expired: \(isExpired)")
+                self.logger.kasetDebug("Found \(cookie.name) cookie, expires: \(expiresStr), expired: \(isExpired)")
 
                 if isExpired {
                     self.logger.warning("Auth cookie has expired!")
                     return nil
                 }
             } else if cookie.isSessionOnly {
-                self.logger.debug("Found \(cookie.name) cookie (session-only, no expiration)")
+                self.logger.kasetDebug("Found \(cookie.name) cookie (session-only, no expiration)")
             }
             return cookie.value
         }
 
         let cookieNames = cookies.map(\.name).joined(separator: ", ")
-        self.logger.debug("No auth cookie found. Available cookies: \(cookieNames)")
+        self.logger.kasetDebug("No auth cookie found. Available cookies: \(cookieNames)")
         return nil
     }
 
