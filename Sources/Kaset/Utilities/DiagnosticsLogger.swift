@@ -44,4 +44,22 @@ enum DiagnosticsLogger {
 
     /// Logger for scrobbling-related events (Last.fm, etc.).
     static let scrobbling = Logger(subsystem: "com.sertacozercan.Kaset", category: "Scrobbling")
+
+    /// Logs a debug message only in DEBUG builds.
+    @inline(__always)
+    static func debug(_ message: @autoclosure () -> String, logger: Logger) {
+        #if DEBUG
+            logger.debug("\(message())")
+        #endif
+    }
+}
+
+extension Logger {
+    /// Optimized debug logging that is stripped in release builds.
+    @inline(__always)
+    func kasetDebug(_ message: @autoclosure () -> String) {
+        #if DEBUG
+            self.debug("\(message())")
+        #endif
+    }
 }

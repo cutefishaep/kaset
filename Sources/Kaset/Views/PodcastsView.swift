@@ -454,7 +454,7 @@ struct PodcastShowView: View {
         self.isSubscribing = true
         defer { self.isSubscribing = false }
 
-        DiagnosticsLogger.api.debug("toggleSubscription called, isSubscribed=\(self.isSubscribed), showId=\(self.show.id)")
+        DiagnosticsLogger.api.kasetDebug("toggleSubscription called, isSubscribed=\(self.isSubscribed), showId=\(self.show.id)")
 
         do {
             if self.isSubscribed {
@@ -464,7 +464,7 @@ struct PodcastShowView: View {
                     libraryViewModel: self.libraryViewModel
                 )
                 self.isSubscribed = false
-                DiagnosticsLogger.api.debug("Unsubscribe completed, isSubscribed now=\(self.isSubscribed)")
+                DiagnosticsLogger.api.kasetDebug("Unsubscribe completed, isSubscribed now=\(self.isSubscribed)")
             } else {
                 try await SongActionsHelper.subscribeToPodcast(
                     self.show,
@@ -472,7 +472,7 @@ struct PodcastShowView: View {
                     libraryViewModel: self.libraryViewModel
                 )
                 self.isSubscribed = true
-                DiagnosticsLogger.api.debug("Subscribe completed, isSubscribed now=\(self.isSubscribed)")
+                DiagnosticsLogger.api.kasetDebug("Subscribe completed, isSubscribed now=\(self.isSubscribed)")
             }
         } catch {
             let errorMessage = error.localizedDescription

@@ -12,7 +12,7 @@ enum SearchSuggestionsParser {
 
         // Navigate to contents array
         guard let contents = data["contents"] as? [[String: Any]] else {
-            Self.logger.debug("SearchSuggestionsParser: No contents array found. Top keys: \(data.keys.sorted())")
+            Self.logger.kasetDebug("SearchSuggestionsParser: No contents array found. Top keys: \(data.keys.sorted())")
             return suggestions
         }
 

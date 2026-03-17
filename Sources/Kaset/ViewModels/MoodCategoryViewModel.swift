@@ -40,7 +40,7 @@ final class MoodCategoryViewModel: ObservableObject {
             let sectionCount = self.sections.count
             self.logger.info("Mood category '\(title)' loaded: \(sectionCount) sections")
         } catch is CancellationError {
-            self.logger.debug("Mood category load cancelled")
+            self.logger.kasetDebug("Mood category load cancelled")
             self.loadingState = .idle
         } catch {
             self.logger.error("Failed to load mood category: \(error.localizedDescription)")

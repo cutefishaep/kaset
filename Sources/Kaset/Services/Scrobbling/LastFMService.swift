@@ -86,7 +86,7 @@ final class LastFMService: ObservableObject, ScrobbleServiceProtocol {
         do {
             // Step 1: Get auth token
             let token = try await self.getAuthToken()
-            self.logger.debug("Received auth token")
+            self.logger.kasetDebug("Received auth token")
 
             // Step 2: Get auth URL from Worker and open in browser
             let authURL = try await self.getAuthURL(token: token)
@@ -138,7 +138,7 @@ final class LastFMService: ObservableObject, ScrobbleServiceProtocol {
         let response = try await self.postJSON(endpoint: "nowplaying", bodyData: bodyData, baseURL: self.workerBaseURL)
         try self.checkForErrors(response)
 
-        self.logger.debug("Now playing: \(track.title) by \(track.artist)")
+        self.logger.kasetDebug("Now playing: \(track.title) by \(track.artist)")
     }
 
     /// Submits a batch of scrobbles to Last.fm via the Worker proxy.
@@ -288,7 +288,7 @@ final class LastFMService: ObservableObject, ScrobbleServiceProtocol {
                 }
             } catch {
                 if Task.isCancelled { return }
-                self.logger.debug("Auth polling attempt \(attempts) failed: \(error.localizedDescription)")
+                self.logger.kasetDebug("Auth polling attempt \(attempts) failed: \(error.localizedDescription)")
                 // Continue polling on transient errors
             }
         }

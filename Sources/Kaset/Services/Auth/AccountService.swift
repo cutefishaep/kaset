@@ -85,7 +85,7 @@ final class AccountService: ObservableObject {
     /// automatically selected.
     func fetchAccounts() async {
         guard self.authService.state.isLoggedIn else {
-            self.logger.debug("AccountService: Skipping fetch - not logged in")
+            self.logger.kasetDebug("AccountService: Skipping fetch - not logged in")
             return
         }
 
@@ -102,7 +102,7 @@ final class AccountService: ObservableObject {
 
             // Restore previously selected account if stored
             if let savedBrandId = UserDefaults.standard.string(forKey: self.selectedBrandIdKey) {
-                self.logger.debug("AccountService: Found saved brand ID: \(savedBrandId)")
+                self.logger.kasetDebug("AccountService: Found saved brand ID: \(savedBrandId)")
 
                 // Find the account with the saved brand ID
                 if let savedAccount = self.accounts.first(where: { $0.id == savedBrandId }) {
@@ -111,12 +111,12 @@ final class AccountService: ObservableObject {
                 } else {
                     // Saved account no longer available, use API-selected
                     self.currentAccount = response.selectedAccount ?? self.accounts.first
-                    self.logger.debug("AccountService: Saved account not found, using API-selected")
+                    self.logger.kasetDebug("AccountService: Saved account not found, using API-selected")
                 }
             } else {
                 // Default to the currently selected account from API response
                 self.currentAccount = response.selectedAccount ?? self.accounts.first
-                self.logger.debug("AccountService: Using API-selected account")
+                self.logger.kasetDebug("AccountService: Using API-selected account")
             }
 
             let currentLabel = self.currentAccount?.brandId ?? "primary"
@@ -135,7 +135,7 @@ final class AccountService: ObservableObject {
     /// - Throws: An error if the switch fails.
     func switchAccount(to account: UserAccount) async throws {
         guard account != self.currentAccount else {
-            self.logger.debug("AccountService: Already using account \(account.name)")
+            self.logger.kasetDebug("AccountService: Already using account \(account.name)")
             return
         }
 
@@ -169,7 +169,7 @@ final class AccountService: ObservableObject {
 
             // Persist selection
             UserDefaults.standard.set(account.id, forKey: self.selectedBrandIdKey)
-            self.logger.debug("AccountService: Saved brand ID: \(account.id)")
+            self.logger.kasetDebug("AccountService: Saved brand ID: \(account.id)")
 
             self.logger.info("AccountService: Successfully switched to account: \(account.name)")
         } catch {
@@ -192,7 +192,7 @@ final class AccountService: ObservableObject {
         self.currentAccount = nil
         UserDefaults.standard.removeObject(forKey: self.selectedBrandIdKey)
 
-        self.logger.debug("AccountService: Accounts cleared")
+        self.logger.kasetDebug("AccountService: Accounts cleared")
     }
 
     /// Clears the last error after it has been displayed.

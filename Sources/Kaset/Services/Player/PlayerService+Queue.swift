@@ -88,7 +88,7 @@ extension PlayerService {
     /// This enables "infinite mix" behavior like YouTube Music web.
     func fetchMoreMixSongsIfNeeded() async {
         let songsRemaining = self.queue.count - self.currentIndex - 1
-        self.logger.debug("Infinite mix check: \(songsRemaining) songs remaining, hasContinuation: \(self.mixContinuationToken != nil)")
+        self.logger.kasetDebug("Infinite mix check: \(songsRemaining) songs remaining, hasContinuation: \(self.mixContinuationToken != nil)")
 
         // Only fetch if we have a continuation token and we're near the end
         guard let token = mixContinuationToken,
@@ -108,7 +108,7 @@ extension PlayerService {
 
         do {
             let result = try await client.getMixQueueContinuation(continuationToken: token)
-            self.logger.debug("Continuation returned \(result.songs.count) songs, hasNextToken: \(result.continuationToken != nil)")
+            self.logger.kasetDebug("Continuation returned \(result.songs.count) songs, hasNextToken: \(result.continuationToken != nil)")
 
             // Filter out songs already in queue to avoid duplicates
             let existingIds = Set(queue.map(\.videoId))
@@ -491,7 +491,7 @@ extension PlayerService {
                 // Update the queue in-place
                 if index < queue.count, queue[index].videoId == videoId {
                     queue[index] = enrichedSong
-                    self.logger.debug("Enriched song \(index): '\(enrichedSong.title)' - artists: \(enrichedSong.artistsDisplay)")
+                    self.logger.kasetDebug("Enriched song \(index): '\(enrichedSong.title)' - artists: \(enrichedSong.artistsDisplay)")
                 }
 
                 // Small delay between requests to be API-friendly

@@ -54,7 +54,7 @@ final class PlaylistDetailViewModel: ObservableObject {
             // This bypasses the broken continuation pagination for these playlists
             // Check for both VL-prefixed and raw RDCLAK IDs
             let isRadioPlaylist = playlistId.contains("RDCLAK") || playlistId.hasPrefix("RD")
-            self.logger.debug("Playlist ID: \(playlistId), isRadioPlaylist: \(isRadioPlaylist)")
+            self.logger.kasetDebug("Playlist ID: \(playlistId), isRadioPlaylist: \(isRadioPlaylist)")
 
             let response = try await client.getPlaylist(id: self.playlist.id)
             var detail = response.detail
@@ -126,7 +126,7 @@ final class PlaylistDetailViewModel: ObservableObject {
             self.logger.info("Playlist loaded: \(trackCount) tracks, hasMore: \(self.hasMore)")
         } catch is CancellationError {
             // Task was cancelled (e.g., user navigated away) — reset to idle so it can retry
-            self.logger.debug("Playlist detail load cancelled")
+            self.logger.kasetDebug("Playlist detail load cancelled")
             self.loadingState = .idle
         } catch {
             self.logger.error("Failed to load playlist: \(error.localizedDescription)")
@@ -183,7 +183,7 @@ final class PlaylistDetailViewModel: ObservableObject {
             self.loadingState = .loaded
             self.logger.info("Loaded \(newTracks.count) new tracks (from \(response.tracks.count)), total: \(allTracks.count), hasMore: \(self.hasMore)")
         } catch is CancellationError {
-            self.logger.debug("Playlist continuation cancelled")
+            self.logger.kasetDebug("Playlist continuation cancelled")
             self.loadingState = .loaded
         } catch {
             self.logger.error("Failed to load more playlist tracks: \(error.localizedDescription)")

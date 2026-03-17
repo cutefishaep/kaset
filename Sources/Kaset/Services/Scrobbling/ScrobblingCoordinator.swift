@@ -216,7 +216,7 @@ final class ScrobblingCoordinator: ObservableObject {
         self.lastProgressTime = Date()
         self.hasScrobbled = false
         self.hasSentNowPlaying = false
-        self.logger.debug("Started tracking: \(track.title) by \(track.artistsDisplay)")
+        self.logger.kasetDebug("Started tracking: \(track.title) by \(track.artistsDisplay)")
     }
 
     private func finalizeCurrentTrack() {
@@ -231,7 +231,7 @@ final class ScrobblingCoordinator: ObservableObject {
             }
         }
 
-        self.logger.debug("Finalized track (accumulated: \(String(format: "%.1f", self.accumulatedPlayTime))s, scrobbled: \(self.hasScrobbled))")
+        self.logger.kasetDebug("Finalized track (accumulated: \(String(format: "%.1f", self.accumulatedPlayTime))s, scrobbled: \(self.hasScrobbled))")
 
         // Reset tracking state
         self.currentTrackVideoId = nil
@@ -319,7 +319,7 @@ final class ScrobblingCoordinator: ObservableObject {
                 } catch is CancellationError {
                     // Expected when coordinator stops or track changes
                 } catch {
-                    self.logger.debug("Now playing update failed for \(service.serviceName) (non-critical): \(error.localizedDescription)")
+                    self.logger.kasetDebug("Now playing update failed for \(service.serviceName) (non-critical): \(error.localizedDescription)")
                 }
             }
             self.nowPlayingTasks.append(task)
@@ -354,7 +354,7 @@ final class ScrobblingCoordinator: ObservableObject {
         let batch = self.queue.dequeue(limit: 50)
         guard !batch.isEmpty else { return }
 
-        self.logger.debug("Flushing \(batch.count) scrobbles from queue")
+        self.logger.kasetDebug("Flushing \(batch.count) scrobbles from queue")
 
         // Submit to all enabled+connected services. Services deduplicate, so
         // re-submitting to a service that already accepted is safe (Option A).

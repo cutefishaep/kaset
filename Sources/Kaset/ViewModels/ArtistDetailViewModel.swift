@@ -71,7 +71,7 @@ final class ArtistDetailViewModel: ObservableObject {
             self.logger.info("Artist loaded: \(songCount) songs")
         } catch is CancellationError {
             // Task was cancelled (e.g., user navigated away) — reset to idle so it can retry
-            self.logger.debug("Artist detail load cancelled")
+            self.logger.kasetDebug("Artist detail load cancelled")
             self.loadingState = .idle
         } catch {
             self.logger.error("Failed to load artist: \(error.localizedDescription)")

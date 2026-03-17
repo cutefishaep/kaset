@@ -38,7 +38,7 @@ final class AuthService: ObservableObject, AuthServiceProtocol {
         let isUITest = UITestConfig.isUITestMode
         let skipAuth = UITestConfig.shouldSkipAuth
         let forceLoggedOut = UITestConfig.environmentValue(for: UITestConfig.mockLoggedOutKey) == "true"
-        self.logger.debug("AuthService init: isUITestMode=\(isUITest), shouldSkipAuth=\(skipAuth)")
+        self.logger.kasetDebug("AuthService init: isUITestMode=\(isUITest), shouldSkipAuth=\(skipAuth)")
         if isUITest, forceLoggedOut {
             self.logger.info("UI Test mode: forcing logged-out state")
             self.state = .loggedOut
@@ -72,7 +72,7 @@ final class AuthService: ObservableObject, AuthServiceProtocol {
             return
         }
 
-        self.logger.debug("Checking login status from cookies")
+        self.logger.kasetDebug("Checking login status from cookies")
 
         // Wait for WebKitManager to finish restoring cookies from Keychain
         // This is important because restoration happens async in init()
@@ -90,7 +90,7 @@ final class AuthService: ObservableObject, AuthServiceProtocol {
         let delayBetweenAttempts: Duration = .milliseconds(800)
 
         for attempt in 1 ... maxAttempts {
-            self.logger.debug("Login check attempt \(attempt) of \(maxAttempts)")
+            self.logger.kasetDebug("Login check attempt \(attempt) of \(maxAttempts)")
 
             if let sapisid = await webKitManager.getSAPISID() {
                 self.logger.info("Found SAPISID cookie on attempt \(attempt), user is logged in")
@@ -100,7 +100,7 @@ final class AuthService: ObservableObject, AuthServiceProtocol {
             }
 
             if attempt < maxAttempts {
-                self.logger.debug("No cookies found, waiting before retry...")
+                self.logger.kasetDebug("No cookies found, waiting before retry...")
                 try? await Task.sleep(for: delayBetweenAttempts)
             }
         }

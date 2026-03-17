@@ -142,7 +142,7 @@ extension PlayerService {
                 // This is more reliable than DOM inspection since it comes directly from the API
                 if let videoType = songData.musicVideoType {
                     self.updateVideoAvailability(hasVideo: videoType.hasVideoContent)
-                    self.logger.debug("Video availability from API: \(videoType.rawValue) -> hasVideo=\(videoType.hasVideoContent)")
+                    self.logger.kasetDebug("Video availability from API: \(videoType.rawValue) -> hasVideo=\(videoType.hasVideoContent)")
                 }
 
                 self.logger.info("Updated track metadata - inLibrary: \(self.currentTrackInLibrary), hasTokens: \(self.currentTrackFeedbackTokens != nil)")
@@ -160,7 +160,7 @@ extension PlayerService {
 
                     if needsUpdate {
                         self.queue[queueIndex] = songData
-                        self.logger.debug("Enriched queue entry at index \(queueIndex): '\(songData.title)' with artists: \(songData.artistsDisplay)")
+                        self.logger.kasetDebug("Enriched queue entry at index \(queueIndex): '\(songData.title)' with artists: \(songData.artistsDisplay)")
                         // Save the enriched queue to persistence
                         self.saveQueueForPersistence()
                     }

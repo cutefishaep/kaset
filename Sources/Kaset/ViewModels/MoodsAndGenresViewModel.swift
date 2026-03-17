@@ -57,7 +57,7 @@ final class MoodsAndGenresViewModel: ObservableObject {
             self.startBackgroundLoading()
         } catch is CancellationError {
             // Task was cancelled (e.g., user navigated away) — reset to idle so it can retry
-            self.logger.debug("Moods and genres load cancelled")
+            self.logger.kasetDebug("Moods and genres load cancelled")
             self.loadingState = .idle
         } catch {
             self.logger.error("Failed to load moods and genres: \(error.localizedDescription)")
@@ -97,7 +97,7 @@ final class MoodsAndGenresViewModel: ObservableObject {
                     break
                 }
             } catch is CancellationError {
-                self.logger.debug("Background loading cancelled")
+                self.logger.kasetDebug("Background loading cancelled")
                 break
             } catch {
                 self.logger.warning("Background section load failed: \(error.localizedDescription)")

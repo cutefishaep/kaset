@@ -14,7 +14,7 @@ enum LyricsParser {
               let watchNextTabbedResults = tabbedRenderer["watchNextTabbedResultsRenderer"] as? [String: Any],
               let tabs = watchNextTabbedResults["tabs"] as? [[String: Any]]
         else {
-            self.logger.debug("LyricsParser: Failed to extract lyrics browse ID structure")
+            self.logger.kasetDebug("LyricsParser: Failed to extract lyrics browse ID structure")
             return nil
         }
 

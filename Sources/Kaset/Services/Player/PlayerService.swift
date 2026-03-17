@@ -317,7 +317,7 @@ final class PlayerService: NSObject, ObservableObject, PlayerServiceProtocol {
             self.queueUndoHistory.removeFirst()
         }
         self.queueRedoHistory.removeAll()
-        self.logger.debug("Recorded queue state for undo, undo count: \(self.queueUndoHistory.count)")
+        self.logger.kasetDebug("Recorded queue state for undo, undo count: \(self.queueUndoHistory.count)")
     }
 
     /// Restores the previous queue state. Does nothing if undo history is empty.
@@ -365,21 +365,21 @@ final class PlayerService: NSObject, ObservableObject, PlayerServiceProtocol {
                 thumbnailURL: nil,
                 videoId: videoId
             )
-            self.logger.debug("Loaded mock current track: \(title)")
+            self.logger.kasetDebug("Loaded mock current track: \(title)")
         }
 
         // Load mock playing state
         if let isPlayingString = UITestConfig.environmentValue(for: UITestConfig.mockIsPlayingKey) {
             let isPlaying = isPlayingString == "true"
             self.state = isPlaying ? .playing : .paused
-            self.logger.debug("Loaded mock playing state: \(isPlaying)")
+            self.logger.kasetDebug("Loaded mock playing state: \(isPlaying)")
         }
 
         // Load mock video availability
         if let hasVideoString = UITestConfig.environmentValue(for: UITestConfig.mockHasVideoKey) {
             let hasVideo = hasVideoString == "true"
             self.currentTrackHasVideo = hasVideo
-            self.logger.debug("Loaded mock video availability: \(hasVideo)")
+            self.logger.kasetDebug("Loaded mock video availability: \(hasVideo)")
         }
     }
 
@@ -392,7 +392,7 @@ final class PlayerService: NSObject, ObservableObject, PlayerServiceProtocol {
 
     /// Plays a track by video ID.
     func play(videoId: String) async {
-        self.logger.debug("play() called with videoId: \(videoId)")
+        self.logger.kasetDebug("play() called with videoId: \(videoId)")
         self.logger.info("Playing video: \(videoId)")
         self.state = .loading
 
@@ -506,7 +506,7 @@ final class PlayerService: NSObject, ObservableObject, PlayerServiceProtocol {
     /// Updates track metadata when track changes (e.g., via next/previous).
     /// Also handles enforcing our queue when YouTube autoplay kicks in.
     func updateTrackMetadata(title: String, artist: String, thumbnailUrl: String) {
-        self.logger.debug("Track metadata updated: \(title) - \(artist)")
+        self.logger.kasetDebug("Track metadata updated: \(title) - \(artist)")
 
         let thumbnailURL = URL(string: thumbnailUrl)
         let artistObj = Artist(id: "unknown", name: artist)
@@ -596,20 +596,20 @@ final class PlayerService: NSObject, ObservableObject, PlayerServiceProtocol {
         // the video window when a new track starts.
 
         if previousValue != hasVideo {
-            self.logger.debug("Video availability updated: \(hasVideo)")
+            self.logger.kasetDebug("Video availability updated: \(hasVideo)")
         }
     }
 
     /// Called when video window opens to start grace period
     func videoWindowDidOpen() {
         self.videoWindowOpenedAt = ContinuousClock.now
-        self.logger.debug("videoWindowDidOpen: grace period started")
+        self.logger.kasetDebug("videoWindowDidOpen: grace period started")
     }
 
     /// Called when video window closes to clear grace period
     func videoWindowDidClose() {
         self.videoWindowOpenedAt = nil
-        self.logger.debug("videoWindowDidClose: grace period cleared")
+        self.logger.kasetDebug("videoWindowDidClose: grace period cleared")
     }
 
     /// Returns true if video window was recently opened (within grace period)
@@ -622,7 +622,7 @@ final class PlayerService: NSObject, ObservableObject, PlayerServiceProtocol {
 
     /// Toggles play/pause.
     func playPause() async {
-        self.logger.debug("Toggle play/pause")
+        self.logger.kasetDebug("Toggle play/pause")
 
         // Use singleton WebView if we have a pending video
         if self.pendingPlayVideoId != nil {
@@ -636,7 +636,7 @@ final class PlayerService: NSObject, ObservableObject, PlayerServiceProtocol {
 
     /// Pauses playback.
     func pause() async {
-        self.logger.debug("Pausing playback")
+        self.logger.kasetDebug("Pausing playback")
         if self.pendingPlayVideoId != nil {
             SingletonPlayerWebView.shared.pause()
         } else {
@@ -646,7 +646,7 @@ final class PlayerService: NSObject, ObservableObject, PlayerServiceProtocol {
 
     /// Resumes playback.
     func resume() async {
-        self.logger.debug("Resuming playback")
+        self.logger.kasetDebug("Resuming playback")
         if self.pendingPlayVideoId != nil {
             SingletonPlayerWebView.shared.play()
         } else {
@@ -656,7 +656,7 @@ final class PlayerService: NSObject, ObservableObject, PlayerServiceProtocol {
 
     /// Skips to next track.
     func next() async {
-        self.logger.debug("Skipping to next track")
+        self.logger.kasetDebug("Skipping to next track")
 
         // Prioritize local queue if we have one
         if !self.queue.isEmpty {
@@ -720,7 +720,7 @@ final class PlayerService: NSObject, ObservableObject, PlayerServiceProtocol {
 
     /// Goes to previous track.
     func previous() async {
-        self.logger.debug("Going to previous track")
+        self.logger.kasetDebug("Going to previous track")
 
         // Prioritize local queue if we have one
         if !self.queue.isEmpty {
@@ -762,7 +762,7 @@ final class PlayerService: NSObject, ObservableObject, PlayerServiceProtocol {
 
     /// Seeks to a specific time.
     func seek(to time: TimeInterval) async {
-        self.logger.debug("Seeking to \(time)")
+        self.logger.kasetDebug("Seeking to \(time)")
         if self.pendingPlayVideoId != nil {
             SingletonPlayerWebView.shared.seek(to: time)
             self.progress = time
@@ -842,7 +842,7 @@ final class PlayerService: NSObject, ObservableObject, PlayerServiceProtocol {
 
     /// Stops playback and clears state.
     func stop() async {
-        self.logger.debug("Stopping playback")
+        self.logger.kasetDebug("Stopping playback")
         await self.evaluatePlayerCommand("pauseVideo()")
         self.state = .idle
         self.currentTrack = nil

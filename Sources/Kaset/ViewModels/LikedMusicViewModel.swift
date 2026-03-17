@@ -45,7 +45,7 @@ final class LikedMusicViewModel: ObservableObject {
             self.logger.info("Loaded \(response.songs.count) liked songs, hasMore: \(self.hasMore)")
         } catch is CancellationError {
             // Task was cancelled (e.g., user navigated away) — reset to idle so it can retry
-            self.logger.debug("Liked songs load cancelled")
+            self.logger.kasetDebug("Liked songs load cancelled")
             self.loadingState = .idle
         } catch {
             self.logger.error("Failed to load liked songs: \(error.localizedDescription)")
@@ -98,7 +98,7 @@ final class LikedMusicViewModel: ObservableObject {
             self.loadingState = .loaded
             self.logger.info("Loaded \(newSongs.count) new liked songs (from \(response.songs.count)), total: \(self.songs.count), hasMore: \(self.hasMore)")
         } catch is CancellationError {
-            self.logger.debug("Liked songs continuation cancelled")
+            self.logger.kasetDebug("Liked songs continuation cancelled")
             self.loadingState = .loaded
         } catch {
             self.logger.error("Failed to load more liked songs: \(error.localizedDescription)")

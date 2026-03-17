@@ -76,7 +76,7 @@ final class NotificationService {
         guard Bundle.main.bundleIdentifier != nil else { return }
         // Check if notifications are enabled in settings
         guard self.settingsManager.showNowPlayingNotifications else {
-            self.logger.debug("Notifications disabled in settings, skipping: \(track.title)")
+            self.logger.kasetDebug("Notifications disabled in settings, skipping: \(track.title)")
             return
         }
 
@@ -93,7 +93,7 @@ final class NotificationService {
 
         do {
             try await UNUserNotificationCenter.current().add(request)
-            self.logger.debug("Posted notification for: \(track.title)")
+            self.logger.kasetDebug("Posted notification for: \(track.title)")
         } catch {
             self.logger.error("Failed to post notification: \(error.localizedDescription)")
         }

@@ -46,7 +46,7 @@ struct PlayerBar: View {
             .padding(.vertical, 8)
             .frame(height: 52)
             .background(.regularMaterial)
-            .clipShape(self.playerService.showLyrics ? AnyShape(Rectangle()) : AnyShape(Capsule()))
+            .clipShape(self.playerService.showLyrics ? AnyShape(Rectangle()) : AnyShape(RoundedRectangle(cornerRadius: 26)))
         }
         .padding(.horizontal, self.playerService.showLyrics ? 0 : 16)
         .padding(.bottom, self.playerService.showLyrics ? 0 : 12)
@@ -498,7 +498,7 @@ struct PlayerBar: View {
             if self.playerService.currentTrackHasVideo {
                 Button {
                     HapticService.toggle()
-                    DiagnosticsLogger.player.debug(
+                    DiagnosticsLogger.player.kasetDebug(
                         "Video button clicked, toggling showVideo from \(self.playerService.showVideo)"
                     )
                     withAnimation(AppAnimation.standard) {

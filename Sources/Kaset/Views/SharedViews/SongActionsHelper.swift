@@ -94,7 +94,7 @@ enum SongActionsHelper {
         client: any YTMusicClientProtocol,
         libraryViewModel: LibraryViewModel?
     ) async throws {
-        DiagnosticsLogger.api.debug("Attempting to unsubscribe from podcast: \(show.id), libraryViewModel is \(libraryViewModel == nil ? "nil" : "present")")
+        DiagnosticsLogger.api.kasetDebug("Attempting to unsubscribe from podcast: \(show.id), libraryViewModel is \(libraryViewModel == nil ? "nil" : "present")")
         try await client.unsubscribeFromPodcast(showId: show.id)
         libraryViewModel?.removeFromLibrarySet(podcastId: show.id)
         await libraryViewModel?.refresh()

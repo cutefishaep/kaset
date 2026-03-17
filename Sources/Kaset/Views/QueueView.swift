@@ -223,7 +223,7 @@ private struct QueueRowView: View {
         if self.isCurrentTrack {
             Image(systemName: "waveform")
                 .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(self.playerService.isPlaying ? AnyShapeStyle(.red) : AnyShapeStyle(.tertiary))
+                .foregroundStyle(self.playerService.isPlaying ? .red : .tertiary)
         } else {
             Text("\(self.index + 1)")
                 .font(.system(size: 12))

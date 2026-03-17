@@ -19,9 +19,9 @@ enum HomeResponseParser {
               let sectionContents = sectionListRenderer["contents"] as? [[String: Any]]
         else {
             // Log what top-level keys we have for debugging
-            self.logger.debug("HomeResponseParser: No standard structure found. Top keys: \(data.keys.sorted())")
+            self.logger.kasetDebug("HomeResponseParser: No standard structure found. Top keys: \(data.keys.sorted())")
             if let contents = data["contents"] as? [String: Any] {
-                self.logger.debug("HomeResponseParser: Contents keys: \(contents.keys.sorted())")
+                self.logger.kasetDebug("HomeResponseParser: Contents keys: \(contents.keys.sorted())")
             }
             return HomeResponse(sections: [])
         }
@@ -138,7 +138,7 @@ enum HomeResponseParser {
         // Log unrecognized renderers for debugging
         let rendererKeys = data.keys.filter { $0.hasSuffix("Renderer") }
         if !rendererKeys.isEmpty {
-            self.logger.debug("HomeResponseParser: Unrecognized renderer(s): \(rendererKeys)")
+            self.logger.kasetDebug("HomeResponseParser: Unrecognized renderer(s): \(rendererKeys)")
         }
 
         return nil

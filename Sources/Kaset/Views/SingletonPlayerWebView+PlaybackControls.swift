@@ -181,7 +181,7 @@ extension SingletonPlayerWebView {
                 case "unsupported":
                     DiagnosticsLogger.airplay.warning("showAirPlayPicker: webkitShowPlaybackTargetPicker not supported")
                 default:
-                    DiagnosticsLogger.airplay.debug("showAirPlayPicker: \(status)")
+                    DiagnosticsLogger.airplay.kasetDebug("showAirPlayPicker: \(status)")
                 }
             }
         }

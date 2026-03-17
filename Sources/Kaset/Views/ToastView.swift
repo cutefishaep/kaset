@@ -166,7 +166,7 @@ extension AccessibilityID {
 #if false
 #Preview("Error Toast") {
     ToastView(message: "Failed to switch account. Please try again.", isError: true) {
-        DiagnosticsLogger.ui.debug("Toast dismissed")
+        DiagnosticsLogger.ui.kasetDebug("Toast dismissed")
     }
     .padding()
 }

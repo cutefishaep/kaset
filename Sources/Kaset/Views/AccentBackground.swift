@@ -86,7 +86,7 @@ struct AccentBackground: View {
             // Task was cancelled (e.g., imageURL changed) - expected behavior, no logging needed
             return
         } catch {
-            DiagnosticsLogger.ui.debug("Failed to extract accent colors: \(error.localizedDescription)")
+            DiagnosticsLogger.ui.kasetDebug("Failed to extract accent colors: \(error.localizedDescription)")
             self.palette = .default
             self.isLoaded = true
         }

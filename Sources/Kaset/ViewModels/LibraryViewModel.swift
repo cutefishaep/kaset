@@ -110,7 +110,7 @@ final class LibraryViewModel: ObservableObject {
             self.logger.info("Loaded \(content.playlists.count) playlists and \(content.podcastShows.count) podcasts")
         } catch is CancellationError {
             // Task was cancelled (e.g., user navigated away) — reset to idle so it can retry
-            self.logger.debug("Library load cancelled")
+            self.logger.kasetDebug("Library load cancelled")
             self.loadingState = .idle
         } catch {
             self.logger.error("Failed to load library: \(error.localizedDescription)")
@@ -133,7 +133,7 @@ final class LibraryViewModel: ObservableObject {
             self.logger.info("Loaded playlist with \(trackCount) tracks")
         } catch is CancellationError {
             // Task was cancelled (e.g., user navigated away) — reset to idle so it can retry
-            self.logger.debug("Playlist load cancelled")
+            self.logger.kasetDebug("Playlist load cancelled")
             self.playlistDetailLoadingState = .idle
         } catch {
             self.logger.error("Failed to load playlist: \(error.localizedDescription)")

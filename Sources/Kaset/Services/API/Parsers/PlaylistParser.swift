@@ -115,7 +115,7 @@ enum PlaylistParser {
               let browseEndpoint = navigationEndpoint["browseEndpoint"] as? [String: Any],
               let browseId = browseEndpoint["browseId"] as? String
         else {
-            self.logger.debug("parseLibraryItem: No browseId found")
+            self.logger.kasetDebug("parseLibraryItem: No browseId found")
             return
         }
 
@@ -163,7 +163,7 @@ enum PlaylistParser {
               let browseEndpoint = navigationEndpoint["browseEndpoint"] as? [String: Any],
               let browseId = browseEndpoint["browseId"] as? String
         else {
-            self.logger.debug("parseLibraryItemFromResponsive: No browseId found, keys: \(Array(data.keys))")
+            self.logger.kasetDebug("parseLibraryItemFromResponsive: No browseId found, keys: \(Array(data.keys))")
             return
         }
 
@@ -241,14 +241,14 @@ enum PlaylistParser {
         let detail = PlaylistDetail(playlist: playlist, tracks: tracks, duration: header.duration)
         let continuationToken = Self.extractPlaylistContinuationToken(from: data)
 
-        Self.logger.debug("parsePlaylistWithContinuation: tracks=\(tracks.count), hasToken=\(continuationToken != nil)")
+        Self.logger.kasetDebug("parsePlaylistWithContinuation: tracks=\(tracks.count), hasToken=\(continuationToken != nil)")
 
         return PlaylistTracksResponse(detail: detail, continuationToken: continuationToken)
     }
 
     /// Parses playlist continuation response.
     static func parsePlaylistContinuation(_ data: [String: Any]) -> PlaylistContinuationResponse {
-        self.logger.debug("Parsing playlist continuation. Top-level keys: \(Array(data.keys))")
+        self.logger.kasetDebug("Parsing playlist continuation. Top-level keys: \(Array(data.keys))")
 
         // Try each format in order until we find tracks
         var result = Self.parseContinuationContentsFormat(data)
@@ -259,7 +259,7 @@ enum PlaylistParser {
         }
 
         let hasToken = result.continuationToken != nil
-        Self.logger.debug("Playlist continuation parsed: \(result.tracks.count) tracks, has next token: \(hasToken)")
+        Self.logger.kasetDebug("Playlist continuation parsed: \(result.tracks.count) tracks, has next token: \(hasToken)")
 
         return result
     }
@@ -270,7 +270,7 @@ enum PlaylistParser {
             return PlaylistContinuationResponse(tracks: [], continuationToken: nil)
         }
 
-        Self.logger.debug("Found continuationContents, keys: \(Array(continuationContents.keys))")
+        Self.logger.kasetDebug("Found continuationContents, keys: \(Array(continuationContents.keys))")
 
         // Try musicShelfContinuation
         if let result = Self.parseShelfContinuation(continuationContents, key: "musicShelfContinuation") {
@@ -298,7 +298,7 @@ enum PlaylistParser {
             return nil
         }
 
-        Self.logger.debug("Found \(key) with \(contents.count) items")
+        Self.logger.kasetDebug("Found \(key) with \(contents.count) items")
         let tracks = Self.parseTracksFromContents(contents)
 
         // Try legacy format first, then 2025 format
@@ -315,7 +315,7 @@ enum PlaylistParser {
             return nil
         }
 
-        Self.logger.debug("Found sectionListContinuation with \(sectionContents.count) sections")
+        Self.logger.kasetDebug("Found sectionListContinuation with \(sectionContents.count) sections")
 
         var tracks: [Song] = []
         var token: String?
@@ -347,7 +347,7 @@ enum PlaylistParser {
             return nil
         }
 
-        Self.logger.debug("Found \(key) in sectionListContinuation with \(shelfContents.count) items")
+        Self.logger.kasetDebug("Found \(key) in sectionListContinuation with \(shelfContents.count) items")
         let tracks = Self.parseTracksFromContents(shelfContents)
         let token = Self.extractTokenFromRenderer(shelfRenderer) ?? Self.extractTokenFromContents(shelfContents)
 
@@ -364,7 +364,7 @@ enum PlaylistParser {
             return PlaylistContinuationResponse(tracks: [], continuationToken: nil)
         }
 
-        Self.logger.debug("Using 2025 format continuation response with \(continuationItems.count) items")
+        Self.logger.kasetDebug("Using 2025 format continuation response with \(continuationItems.count) items")
         let tracks = Self.parseTracksFromContents(continuationItems)
         let token = Self.extractTokenFromContents(continuationItems)
 
@@ -395,7 +395,7 @@ enum PlaylistParser {
            let shelfContinuation = continuationContents["musicShelfContinuation"] as? [String: Any],
            let contents = shelfContinuation["contents"] as? [[String: Any]]
         {
-            Self.logger.debug("Parsing liked songs continuation (legacy format) with \(contents.count) items")
+            Self.logger.kasetDebug("Parsing liked songs continuation (legacy format) with \(contents.count) items")
             for itemData in contents {
                 if let track = parseTrackItem(itemData, fallbackThumbnailURL: nil) {
                     tracks.append(track)
@@ -410,7 +410,7 @@ enum PlaylistParser {
            let appendAction = firstAction["appendContinuationItemsAction"] as? [String: Any],
            let continuationItems = appendAction["continuationItems"] as? [[String: Any]]
         {
-            Self.logger.debug("Parsing liked songs continuation (2025 format) with \(continuationItems.count) items")
+            Self.logger.kasetDebug("Parsing liked songs continuation (2025 format) with \(continuationItems.count) items")
             for itemData in continuationItems {
                 if let track = parseTrackItem(itemData, fallbackThumbnailURL: nil) {
                     tracks.append(track)
@@ -419,7 +419,7 @@ enum PlaylistParser {
         }
 
         let continuationToken = Self.extractContinuationTokenFromContinuation(data)
-        Self.logger.debug("Liked songs continuation parsed: \(tracks.count) tracks, hasMore: \(continuationToken != nil)")
+        Self.logger.kasetDebug("Liked songs continuation parsed: \(tracks.count) tracks, hasMore: \(continuationToken != nil)")
         return LikedSongsResponse(songs: tracks, continuationToken: continuationToken)
     }
 
@@ -445,14 +445,14 @@ enum PlaylistParser {
             if let shelfRenderer = sectionData["musicShelfRenderer"] as? [String: Any] {
                 // Try legacy continuations format
                 if let token = Self.extractTokenFromRenderer(shelfRenderer) {
-                    Self.logger.debug("Found liked songs continuation token (legacy format)")
+                    Self.logger.kasetDebug("Found liked songs continuation token (legacy format)")
                     return token
                 }
                 // Try 2025 format - continuationItemRenderer at end of contents
                 if let shelfContents = shelfRenderer["contents"] as? [[String: Any]],
                    let token = Self.extractTokenFromContents(shelfContents)
                 {
-                    Self.logger.debug("Found liked songs continuation token (2025 format)")
+                    Self.logger.kasetDebug("Found liked songs continuation token (2025 format)")
                     return token
                 }
             }
@@ -469,14 +469,14 @@ enum PlaylistParser {
         {
             // Try legacy continuations format
             if let token = extractTokenFromRenderer(shelfContinuation) {
-                self.logger.debug("Found liked songs continuation token from continuation (legacy format)")
+                self.logger.kasetDebug("Found liked songs continuation token from continuation (legacy format)")
                 return token
             }
             // Try 2025 format - continuationItemRenderer at end of contents
             if let contents = shelfContinuation["contents"] as? [[String: Any]],
                let token = Self.extractTokenFromContents(contents)
             {
-                Self.logger.debug("Found liked songs continuation token from continuation (2025 format)")
+                Self.logger.kasetDebug("Found liked songs continuation token from continuation (2025 format)")
                 return token
             }
         }
@@ -488,7 +488,7 @@ enum PlaylistParser {
            let continuationItems = appendAction["continuationItems"] as? [[String: Any]],
            let token = Self.extractTokenFromContents(continuationItems)
         {
-            Self.logger.debug("Found liked songs continuation token from 2025 format response")
+            Self.logger.kasetDebug("Found liked songs continuation token from 2025 format response")
             return token
         }
 
@@ -498,11 +498,11 @@ enum PlaylistParser {
     /// Extracts continuation token from playlist browse response (handles multiple renderer types).
     private static func extractPlaylistContinuationToken(from data: [String: Any]) -> String? {
         guard let contents = data["contents"] as? [String: Any] else {
-            self.logger.debug("No contents key found in playlist response. Top keys: \(Array(data.keys))")
+            self.logger.kasetDebug("No contents key found in playlist response. Top keys: \(Array(data.keys))")
             return nil
         }
 
-        Self.logger.debug("Contents keys: \(Array(contents.keys))")
+        Self.logger.kasetDebug("Contents keys: \(Array(contents.keys))")
 
         // Try singleColumnBrowseResultsRenderer path
         if let token = Self.extractTokenFromSingleColumnRenderer(contents) {
@@ -514,7 +514,7 @@ enum PlaylistParser {
             return token
         }
 
-        Self.logger.debug("No continuation token found in playlist response")
+        Self.logger.kasetDebug("No continuation token found in playlist response")
         return nil
     }
 
@@ -532,7 +532,7 @@ enum PlaylistParser {
 
         // First check for continuation at sectionListRenderer level
         if let token = Self.extractTokenFromRenderer(sectionListRenderer) {
-            Self.logger.debug("Found continuation token at sectionListRenderer level")
+            Self.logger.kasetDebug("Found continuation token at sectionListRenderer level")
             return token
         }
 
@@ -550,7 +550,7 @@ enum PlaylistParser {
             return nil
         }
 
-        Self.logger.debug("Found twoColumnBrowseResultsRenderer, keys: \(Array(twoColumnRenderer.keys))")
+        Self.logger.kasetDebug("Found twoColumnBrowseResultsRenderer, keys: \(Array(twoColumnRenderer.keys))")
 
         // Try secondaryContents path
         if let token = Self.extractTokenFromSecondaryContents(twoColumnRenderer) {
@@ -575,12 +575,12 @@ enum PlaylistParser {
 
         // First check for continuation at sectionListRenderer level
         if let token = Self.extractTokenFromRenderer(sectionListRenderer) {
-            Self.logger.debug("Found continuation token at secondaryContents sectionListRenderer level")
+            Self.logger.kasetDebug("Found continuation token at secondaryContents sectionListRenderer level")
             return token
         }
 
         if let sectionContents = sectionListRenderer["contents"] as? [[String: Any]] {
-            Self.logger.debug("Found secondaryContents with \(sectionContents.count) sections")
+            Self.logger.kasetDebug("Found secondaryContents with \(sectionContents.count) sections")
             return Self.extractTokenFromSectionContents(sectionContents)
         }
 
@@ -599,19 +599,19 @@ enum PlaylistParser {
             return nil
         }
 
-        Self.logger.debug("Found twoColumnBrowseResultsRenderer tabs with \(sectionContents.count) sections")
+        Self.logger.kasetDebug("Found twoColumnBrowseResultsRenderer tabs with \(sectionContents.count) sections")
 
         for sectionData in sectionContents {
             if let shelfRenderer = sectionData["musicShelfRenderer"] as? [String: Any],
                let token = Self.extractTokenFromRenderer(shelfRenderer)
             {
-                Self.logger.debug("Found continuation token in tabs musicShelfRenderer")
+                Self.logger.kasetDebug("Found continuation token in tabs musicShelfRenderer")
                 return token
             }
             if let playlistShelfRenderer = sectionData["musicPlaylistShelfRenderer"] as? [String: Any],
                let token = Self.extractTokenFromRenderer(playlistShelfRenderer)
             {
-                Self.logger.debug("Found continuation token in tabs musicPlaylistShelfRenderer")
+                Self.logger.kasetDebug("Found continuation token in tabs musicPlaylistShelfRenderer")
                 return token
             }
         }
@@ -623,17 +623,17 @@ enum PlaylistParser {
     private static func extractTokenFromSectionContents(_ sectionContents: [[String: Any]]) -> String? {
         for sectionData in sectionContents {
             if let shelfRenderer = sectionData["musicShelfRenderer"] as? [String: Any] {
-                self.logger.debug("Found musicShelfRenderer, has continuations: \(shelfRenderer["continuations"] != nil)")
+                self.logger.kasetDebug("Found musicShelfRenderer, has continuations: \(shelfRenderer["continuations"] != nil)")
                 if let token = extractTokenFromRenderer(shelfRenderer) {
-                    self.logger.debug("Found continuation token in musicShelfRenderer")
+                    self.logger.kasetDebug("Found continuation token in musicShelfRenderer")
                     return token
                 }
             }
             if let playlistShelfRenderer = sectionData["musicPlaylistShelfRenderer"] as? [String: Any] {
-                Self.logger.debug("Found musicPlaylistShelfRenderer, has continuations: \(playlistShelfRenderer["continuations"] != nil)")
+                Self.logger.kasetDebug("Found musicPlaylistShelfRenderer, has continuations: \(playlistShelfRenderer["continuations"] != nil)")
                 // Try legacy continuations format first
                 if let token = Self.extractTokenFromRenderer(playlistShelfRenderer) {
-                    Self.logger.debug("Found continuation token in musicPlaylistShelfRenderer (legacy format)")
+                    Self.logger.kasetDebug("Found continuation token in musicPlaylistShelfRenderer (legacy format)")
                     return token
                 }
                 // Try 2025 format - token at last item of contents
@@ -670,7 +670,7 @@ enum PlaylistParser {
         else {
             return nil
         }
-        Self.logger.debug("Found continuation token in continuationItemRenderer (2025 format)")
+        Self.logger.kasetDebug("Found continuation token in continuationItemRenderer (2025 format)")
         return token
     }
 
@@ -1009,13 +1009,13 @@ enum PlaylistParser {
     /// This endpoint returns ALL tracks for a playlist in a single request (no pagination needed).
     static func parseQueueTracks(_ data: [String: Any]) -> [Song] {
         guard let queueDatas = data["queueDatas"] as? [[String: Any]] else {
-            self.logger.debug("No queueDatas found in queue response")
+            self.logger.kasetDebug("No queueDatas found in queue response")
             return []
         }
 
-        Self.logger.debug("Parsing queue response with \(queueDatas.count) items")
+        Self.logger.kasetDebug("Parsing queue response with \(queueDatas.count) items")
         let tracks = queueDatas.compactMap { Self.parseQueueItem($0) }
-        Self.logger.debug("Parsed \(tracks.count) tracks from queue response")
+        Self.logger.kasetDebug("Parsed \(tracks.count) tracks from queue response")
         return tracks
     }
 

@@ -21,7 +21,7 @@ enum PodcastParser {
               let sectionListRenderer = tabContent["sectionListRenderer"] as? [String: Any],
               let sectionContents = sectionListRenderer["contents"] as? [[String: Any]]
         else {
-            Self.logger.debug("PodcastParser: No standard structure found. Top keys: \(data.keys.sorted())")
+            Self.logger.kasetDebug("PodcastParser: No standard structure found. Top keys: \(data.keys.sorted())")
             return []
         }
 

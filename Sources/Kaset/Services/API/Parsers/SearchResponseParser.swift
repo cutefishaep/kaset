@@ -21,7 +21,7 @@ enum SearchResponseParser {
               let sectionListRenderer = tabContent["sectionListRenderer"] as? [String: Any],
               let sectionContents = sectionListRenderer["contents"] as? [[String: Any]]
         else {
-            Self.logger.debug("SearchResponseParser: Failed to parse response structure. Top keys: \(data.keys.sorted())")
+            Self.logger.kasetDebug("SearchResponseParser: Failed to parse response structure. Top keys: \(data.keys.sorted())")
             return SearchResponse.empty
         }
 
